@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Sin red: ni fetch, ni imágenes remotas, ni fuentes externas. La foto no puede salir de aquí. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; connect-src 'none'; font-src 'self'; media-src 'none'; object-src 'none'; worker-src 'self'; form-action 'none'; base-uri 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noai, noimageai">
+<title>FiltroAnime</title>
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header>
+  <h1>FiltroAnime</h1>
+  <p class="badge" title="Content-Security-Policy: connect-src 'none'">Procesado 100 % local · sin red · sin guardar nada</p>
+  <p class="badge mode" id="mode" role="status"></p>
+</header>
+
+<main>
+  <section class="stage" id="stage" aria-label="Imagen">
+    <div class="frame" id="frame" hidden>
+      <canvas id="out"></canvas>
+      <div class="curtain" id="curtain" hidden>
+        <canvas id="orig" aria-hidden="true"></canvas>
+        <div class="divider" aria-hidden="true"><span class="handle"></span></div>
+        <span class="tag tag-before" aria-hidden="true">Antes</span>
+        <span class="tag tag-after" aria-hidden="true">Después</span>
+        <input id="split" type="range" min="0" max="100" step="1" value="50" aria-label="Posición de la cortina antes/después" aria-valuetext="50 % original">
+      </div>
+      <canvas id="paint" hidden aria-label="Lienzo del pincel: las zonas azuladas son fondo"></canvas>
+      <div class="brush-cursor" id="cursor" hidden></div>
+    </div>
+    <label class="drop" id="drop">
+      <input id="file" type="file" accept="image/png,image/jpeg,image/webp">
+      <strong>Elige una foto</strong>
+      <span>o arrástrala aquí, o pégala con Ctrl+V</span>
+    </label>
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+  </section>
+
+  <aside>
+    <fieldset>
+      <legend>Estilo</legend>
+      <div class="styles" id="styles" role="radiogroup"></div>
+    </fieldset>
+
+    <fieldset id="controls" disabled>
+      <legend>Ajustes</legend>
+      <label class="check"><input id="hq" type="checkbox"> <span>Alta calidad <small>(hasta 2400 px, más lento)</small></span> <output id="o-res"></output></label>
+      <label><span>Grosor de línea <output id="o-thick"></output></span><input id="thick" type="range" min="-1" max="3" step="1" value="0"></label>
+      <label><span>Detalle <output id="o-tau"></output></span><input id="tau" type="range" min="0.94" max="0.995" step="0.005" value="0.975"></label>
+      <label><span>Sombras <output id="o-dark"></output></span><input id="dark" type="range" min="-0.2" max="0.3" step="0.02" value="0"></label>
+      <label><span>Recorte de fondo <output id="o-tol"></output></span><input id="tol" type="range" min="0" max="40" step="2" value="18"></label>
+      <div class="brush" role="group" aria-labelledby="brush-title">
+        <div class="row">
+          <span class="group-title" id="brush-title">Retocar recorte</span>
+          <button id="brush" type="button" aria-pressed="false">Pincel</button>
+        </div>
+        <div id="brush-tools" hidden>
+          <div class="row" role="radiogroup" aria-label="Qué pintas">
+            <button type="button" role="radio" id="tool-person" aria-checked="true">Es persona</button>
+            <button type="button" role="radio" id="tool-bg" aria-checked="false">Es fondo</button>
+          </div>
+          <label><span>Tamaño del pincel <output id="o-size"></output></span><input id="size" type="range" min="8" max="200" step="4" value="60"></label>
+          <div class="row">
+            <button id="undo" type="button" disabled>Deshacer</button>
+            <button id="wipe" type="button" disabled>Borrar retoques</button>
+          </div>
+          <p class="hint">Las zonas azuladas son fondo. Pinta «Es persona» donde el recorte se comió algo tuyo y «Es fondo» donde sobra. Ctrl+Z deshace; [ y ] cambian el tamaño.</p>
+        </div>
+      </div>
+      <div class="row">
+        <button id="compare" type="button" aria-pressed="false">Antes / después</button>
+        <button id="reset" type="button">Restablecer</button>
+      </div>
+      <button id="save" type="button" class="primary">Descargar PNG</button>
+      <button id="clear" type="button">Quitar foto</button>
+    </fieldset>
+
+    <details>
+      <summary>Privacidad: qué se garantiza y qué no</summary>
+      <ul>
+        <li><b>Sí:</b> la foto se procesa solo en este navegador. La página bloquea cualquier conexión de red (CSP <code>connect-src 'none'</code>).</li>
+        <li><b>Sí:</b> no se guarda nada; al cerrar la pestaña desaparece.</li>
+        <li><b>Sí:</b> el PNG exportado no lleva EXIF (ni GPS ni modelo de móvil) y lleva la marca <code>noai, noimageai</code>.</li>
+        <li><b>No:</b> si publicas la imagen, nadie puede impedir técnicamente que se use para entrenar una IA. La marca <code>noai</code> es una petición que solo algunos respetan.</li>
+        <li><b>No:</b> estilizar no anonimiza: sigues siendo reconocible.</li>
+      </ul>
+    </details>
+  </aside>
+</main>
+
+<script src="core/ops.js"></script>
+<script src="core/mask.js"></script>
+<script src="core/png.js"></script>
+<script src="core/styles.js"></script>
+<script src="core/backgrounds.js"></script>
+<script src="core/render.js"></script>
+<script src="core/brush.js"></script>
+<script src="core/pipeline.js"></script>
+<script src="main.js"></script>
+</body>
+</html>

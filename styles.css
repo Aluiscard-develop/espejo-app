@@ -1,0 +1,89 @@
+:root {
+  --bg: #0f0b0d;
+  --surface: #1a1417;
+  --line: #3a2d33;
+  --fg: #efe6da;
+  --muted: #a69888;
+  --accent: #d11f2e;
+  --accent-fg: #ffffff;
+  --radius: 6px;
+  --gap: 16px;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #f4efe8; --surface: #ffffff; --line: #d9cfc3; --fg: #1d1517; --muted: #6b5f55;
+  }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.45 system-ui, sans-serif; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+h1 { margin: 0; font-size: 20px; letter-spacing: .04em; }
+.badge { margin: 0; font-size: 13px; color: var(--muted); }
+.mode { margin-left: auto; }
+.mode[data-mode="worker"]::before { content: "● "; color: #2fbf71; }
+main { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: var(--gap); padding: var(--gap); max-width: 1200px; margin: 0 auto; }
+@media (max-width: 800px) { main { grid-template-columns: 1fr; } }
+
+.stage { position: relative; min-height: 50vh; display: grid; place-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.stage.dragging { outline: 3px dashed var(--accent); outline-offset: -8px; }
+.frame { position: relative; max-width: 100%; line-height: 0; }
+#out { max-width: 100%; max-height: 82vh; height: auto; display: block; }
+
+/* Cortina antes/después: el original se recorta a la izquierda de --pos */
+.curtain { --pos: 50%; position: absolute; inset: 0; }
+#orig { position: absolute; inset: 0; width: 100%; height: 100%; clip-path: inset(0 calc(100% - var(--pos)) 0 0); }
+.divider { position: absolute; top: 0; bottom: 0; left: var(--pos); width: 2px; margin-left: -1px; background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.5); pointer-events: none; }
+.handle { position: absolute; top: 50%; left: 50%; width: 36px; height: 36px; margin: -18px 0 0 -18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 6px rgba(0,0,0,.5); }
+.handle::before, .handle::after { content: ""; position: absolute; top: 12px; border: 6px solid transparent; }
+.handle::before { left: 3px; border-right-color: #1d1517; }
+.handle::after { right: 3px; border-left-color: #1d1517; }
+.tag { position: absolute; top: 8px; padding: 2px 8px; font-size: 12px; line-height: 1.6; color: #fff; background: rgba(0,0,0,.65); border-radius: 4px; pointer-events: none; }
+.tag-before { left: 8px; }
+.tag-after { right: 8px; }
+#split { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: ew-resize; touch-action: none; }
+.curtain:has(#split:focus-visible) .handle { outline: 3px solid var(--accent); outline-offset: 2px; }
+/* Pincel de máscara */
+#paint { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: none; }
+.brush-cursor { position: absolute; left: 0; top: 0; border: 2px solid #fff; border-radius: 50%; box-shadow: 0 0 0 1px #000, inset 0 0 0 1px #000; transform: translate(-50%, -50%); pointer-events: none; }
+.brush { display: grid; gap: 8px; padding-top: 4px; border-top: 1px solid var(--line); }
+.brush .row { align-items: center; }
+#brush-tools { display: grid; gap: 8px; }
+.group-title { font-size: 13px; color: var(--muted); }
+button[role="radio"][aria-checked="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+button:disabled { opacity: .45; cursor: default; }
+.hint { margin: 0; font-size: 12px; color: var(--muted); }
+button[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.drop { display: grid; gap: 6px; text-align: center; padding: 48px 24px; cursor: pointer; color: var(--muted); }
+.drop strong { color: var(--fg); font-size: 18px; }
+.drop input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.drop:focus-within strong { text-decoration: underline; }
+.status { position: absolute; bottom: 8px; left: 8px; margin: 0; padding: 4px 8px; font-size: 13px; background: rgba(0,0,0,.7); color: #fff; border-radius: 4px; }
+.status:empty { display: none; }
+.status.error { background: var(--accent); }
+
+aside { display: flex; flex-direction: column; gap: var(--gap); }
+fieldset { margin: 0; border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; display: grid; gap: 12px; background: var(--surface); }
+fieldset[disabled] { opacity: .5; }
+legend { padding: 0 4px; color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: .08em; }
+.styles { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.styles button { text-align: left; padding: 8px; line-height: 1.2; }
+.styles button small { display: block; color: var(--muted); font-size: 11px; margin-top: 2px; }
+.styles button[aria-checked="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+label { display: grid; gap: 4px; font-size: 13px; }
+label > span { display: flex; justify-content: space-between; color: var(--muted); }
+input[type="range"] { width: 100%; accent-color: var(--accent); }
+label.check { display: flex; align-items: center; gap: 8px; color: var(--fg); cursor: pointer; }
+label.check > span { display: inline; color: var(--fg); }
+label.check small { color: var(--muted); }
+label.check output { margin-left: auto; color: var(--muted); font-variant-numeric: tabular-nums; }
+input[type="checkbox"] { accent-color: var(--accent); width: 16px; height: 16px; margin: 0; }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+button { font: inherit; font-size: 14px; color: var(--fg); background: transparent; border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 10px; cursor: pointer; }
+button:hover { border-color: var(--muted); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 600; }
+details { font-size: 13px; color: var(--muted); }
+summary { cursor: pointer; color: var(--fg); }
+details ul { padding-left: 18px; }
+code { font-size: 12px; }
