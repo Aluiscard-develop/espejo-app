@@ -3,22 +3,31 @@
   "use strict";
   const { estilo, dibujos, color, app } = window.FA;
   const { $, el, pic } = app;
-  const answers = app.memory.load("estilo") || {};
+  // Respuestas por separado: las siluetas y opciones del test de mujer no son las del de hombre.
+  const KEYS = { hombre: "estilo", mujer: "estiloMujer" };
+  const byS = { hombre: app.memory.load(KEYS.hombre) || {}, mujer: app.memory.load(KEYS.mujer) || {} };
   const rep = $("report-estilo");
+  let answers;
 
-  app.quiz($("estilo-quiz"), estilo.QUIZ, answers, render);
+  function buildQuiz() {
+    answers = byS[app.profile.sexo];
+    $("estilo-quiz").replaceChildren();
+    app.quiz($("estilo-quiz"), estilo.quiz(app.profile.sexo), answers, render);
+  }
+  buildQuiz();
 
-  app.on("remember", () => app.memory.save("estilo", answers));
+  app.on("remember", () => { for (const k of Object.keys(KEYS)) app.memory.save(KEYS[k], byS[k]); });
 
   function render() {
-    app.memory.save("estilo", answers);
+    app.memory.save(KEYS[app.profile.sexo], answers);
     rep.replaceChildren();
     const prof = app.profile.color;
     const seasonId = prof ? prof.season.id : "otono-suave";
-    const r = estilo.recommend(answers, seasonId, prof ? prof.traits.contrast : null);
+    const r = estilo.recommend(answers, seasonId, prof ? prof.traits.contrast : null, app.profile.sexo);
     app.profile.estilo = r;
     app.emit("profile", "estilo");
     if (!Object.values(answers).some(Boolean)) el("p", "Responde las preguntas de la izquierda y los estilos se ordenan para ti.", rep, "empty");
+    el("p", `Recomendaciones para ${app.profile.sexo}. Cámbialo en «Mi foto».`, rep, "hint");
     el("p", prof ? `Conjuntos pintados con tu paleta: ${prof.season.name}.` : `Conjuntos pintados con una paleta de ejemplo (${color.SEASONS[seasonId].name}). Haz la pestaña «Color» para usar la tuya.`, rep, "hint");
 
     r.styles.forEach((s, i) => {
@@ -50,6 +59,9 @@
   }
 
   app.on("tab", (t) => { if (t === "estilo") render(); });
-  app.on("profile", (k) => { if (k === "color" && app.tab === "estilo") render(); });
+  app.on("profile", (k) => {
+    if (k === "sexo") { buildQuiz(); render(); }
+    else if (k === "color" && app.tab === "estilo") render();
+  });
   render();
 })();

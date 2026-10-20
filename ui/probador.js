@@ -10,7 +10,7 @@
   const st = { mode: "color", season: null, manualSeason: false, history: [], glasses: "rect", gcolor: "#1A1A1A" };
 
   const GLASS_NAMES = { rect: "Rectangulares", square: "Cuadradas", round: "Redondas", oval: "Ovaladas", wayfarer: "Wayfarer", aviator: "Aviador",
-    browline: "Browline", panto: "Panto", rimless: "Al aire", big: "Grandes", bottomwide: "Base ancha", small: "Pequeñas" };
+    browline: "Browline", panto: "Panto", rimless: "Al aire", big: "Grandes", bottomwide: "Base ancha", small: "Pequeñas", cateye: "Ojo de gato" };
   const FRAME_HEX = { "Negro": "#1A1A1A", "Carey claro": "#A8743F", "Carey oscuro": "#4A2A14", "Dorado": "#C9A227", "Miel": "#C58A3C",
     "Marrón": "#5B3A29", "Oliva": "#556B2F", "Bronce": "#8C6239", "Gris": "#6E6E73", "Azul pizarra": "#4A5D73", "Transparente": "#B9C7D1",
     "Plateado": "#B8B8B8", "Azul marino": "#1B2A4A" };
@@ -34,7 +34,9 @@
     $("probador-hint").textContent = {
       color: "Toca una prenda en la foto (o abre la cámara y toca tu ropa) y te digo si ese color te favorece.",
       glasses: "Elige una montura: se dibuja sobre tu foto. Ajusta tamaño y posición con los controles.",
-      hair: "Elige un color de pelo y una barba: se simulan sobre tu foto con modelos que funcionan dentro del navegador.",
+      hair: app.profile.sexo === "mujer"
+        ? "Elige un color de pelo: se simula sobre tu foto con un modelo que funciona dentro del navegador."
+        : "Elige un color de pelo y una barba: se simulan sobre tu foto con modelos que funcionan dentro del navegador.",
     }[m];
     if (m !== "color") app.closeCamera();
     app.probadorMode = m;
@@ -44,6 +46,9 @@
   $("mode-color").addEventListener("click", () => setMode("color"));
   $("mode-glasses").addEventListener("click", () => setMode("glasses"));
   $("mode-hair").addEventListener("click", () => setMode("hair"));
+  const syncSexo = () => { $("mode-hair-label").textContent = app.profile.sexo === "mujer" ? "Pelo" : "Pelo y barba"; };
+  app.on("profile", (k) => { if (k === "sexo") { syncSexo(); setMode(st.mode); } });
+  syncSexo();
 
   // ---- color de prenda ----
   function tryColor(rgb, where) {

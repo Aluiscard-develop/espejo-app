@@ -58,7 +58,7 @@
   function render() {
     remember();
     rep.replaceChildren();
-    const r = piel.routine(answers, [...concerns]);
+    const r = piel.routine(answers, [...concerns], app.profile.sexo);
     app.profile.piel = r;
     app.emit("profile", "piel");
     if (!Object.values(answers).some(Boolean) && !concerns.size) el("p", "Esta es la rutina básica que le sirve a casi todo el mundo. Responde a la izquierda para ajustarla.", rep, "empty");
@@ -88,5 +88,6 @@
     el("p", "Los productos son ejemplos que contienen el ingrediente en la concentración estudiada; la evidencia es del ingrediente, no de la marca. Comprueba qué se vende en tu país. No es consejo médico: granos dolorosos, manchas que cambian o rojez persistente → dermatólogo.", rep, "hint");
   }
 
+  app.on("profile", (k) => { if (k === "sexo") render(); });
   render();
 })();

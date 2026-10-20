@@ -220,6 +220,17 @@
       li("Tamaño: ", j.size);
       li("Montura de gafas: ", j.frames.join(", "));
 
+      if (app.profile.sexo === "mujer") {
+        const mk = color.makeup(s.id, r.axes);
+        el("h3", "💄 Maquillaje", rep, "sec-title");
+        for (const [title, list] of [["Labios", mk.lips], ["Colorete", mk.blush], ["Sombras", mk.eyes]]) {
+          el("h4", title, rep);
+          const row = el("div", "", rep, "swatches");
+          for (const [n, hex] of list) { const c = el("div", "", row, "sw-cell"); swatch(hex, c, n, "swatch big"); el("code", n, c); }
+        }
+        el("p", `${mk.finish} Evita: ${mk.avoid.toLowerCase()}.`, rep, "hint");
+      }
+
       if (app.source && app.getFaceBox()) {
         el("h3", "🪞 Compruébalo tú: drapeado virtual", rep, "sec-title");
         el("p", "Mira dónde se te ven menos ojeras, la piel más uniforme y los ojos más vivos. Ese es tu lado.", rep, "hint");
@@ -260,6 +271,7 @@
     if (app.source && st.auto && app.profile.facePoints) autoSkin();
     update();
   });
+  app.on("profile", (k) => { if (k === "sexo") update(); });
   app.on("camera", drawTaps);
   window.addEventListener("resize", () => { if (app.tab === "color") drawTaps(); });
   update();

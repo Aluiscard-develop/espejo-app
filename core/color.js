@@ -1,5 +1,5 @@
 // Colorimetría personal: piel, pelo y ojos (en CIELAB) + un test corto → 3 ejes (calidez, profundidad,
-// claridad) → 12 estaciones con su paleta, joyería y metales. También juzga si una prenda te favorece.
+// claridad) → 12 estaciones con su paleta, joyería, metales y maquillaje. También juzga si una prenda te favorece.
 // Sin modelos ni red. Es el método de los asesores de imagen: orientativo, no ciencia exacta (D-13).
 (function (root, factory) {
   const api = factory();
@@ -258,6 +258,29 @@
     };
   }
 
+  // Maquillaje por familia (mismo criterio que la paleta: subtono y profundidad), como [nombre, hex].
+  const MAKEUP = {
+    primavera: { lips: [["Coral", "#F2766B"], ["Melocotón", "#F59A83"], ["Rojo amapola", "#E2493B"]],
+      blush: [["Melocotón", "#F4A582"], ["Albaricoque", "#F7B39B"]], eyes: [["Dorado", "#C9A66B"], ["Marrón cálido", "#8B6F47"], ["Verde salvia", "#8FA876"]],
+      avoid: "Labiales fríos y oscuros (ciruela, burdeos azulado) y sombras grises" },
+    otono: { lips: [["Terracota", "#B5523B"], ["Ladrillo", "#A0442C"], ["Rojo óxido", "#8E3B2F"]],
+      blush: [["Terracota", "#C97B5A"], ["Bronce", "#D89070"]], eyes: [["Bronce", "#8B5A2B"], ["Chocolate", "#6B4E2E"], ["Oliva", "#5D6B3A"]],
+      avoid: "Rosas fríos, fucsias y sombras plateadas" },
+    verano: { lips: [["Rosa frambuesa suave", "#C46B8A"], ["Rosa palo", "#D28BA0"], ["Malva", "#9E4F6E"]],
+      blush: [["Rosa frío", "#E8A0B4"], ["Malva", "#D59AB0"]], eyes: [["Gris lavanda", "#8E8FA6"], ["Malva", "#7B6B8D"], ["Pizarra", "#6A7B8C"]],
+      avoid: "Naranjas, corales y dorados intensos" },
+    invierno: { lips: [["Rojo frío", "#C8102E"], ["Fucsia", "#B0005A"], ["Burdeos", "#6D1A36"]],
+      blush: [["Frambuesa", "#D9508C"], ["Baya", "#C2507A"]], eyes: [["Carbón", "#3A3A4A"], ["Berenjena", "#5A4A7A"], ["Plata", "#9AA0A8"]],
+      avoid: "Melocotones, corales y marrones cálidos" },
+  };
+
+  /** Maquillaje de la estación; la intensidad del acabado sale del eje de claridad. */
+  function makeup(seasonId, axes = { c: 0 }) {
+    const m = MAKEUP[SEASONS[seasonId].family];
+    const finish = axes.c > 0.3 ? "Te van los labios intensos y los acabados con brillo." : axes.c < -0.3 ? "Mejor tonos difuminados y acabados satinados o mate; los colores muy vivos te endurecen." : "Tonos medios; reserva el labio intenso para la noche.";
+    return { ...m, finish };
+  }
+
   const SPREAD = 0.45;
 
   /** Estaciones ordenadas de más a menos parecida con porcentaje (suma 100). */
@@ -331,6 +354,6 @@
   return {
     rgbToLab, labToRgb, hexToRgb, rgbToHex, hexToLab, chroma, hue, deltaE,
     sampleCircle, whiteBalance, applyGains,
-    QUIZ, quizAxes, photoAxes, combineAxes, SEASONS, METALS, classify, analyze, judge, jewelry,
+    QUIZ, quizAxes, photoAxes, combineAxes, SEASONS, METALS, MAKEUP, classify, analyze, judge, jewelry, makeup,
   };
 });

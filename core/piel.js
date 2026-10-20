@@ -90,7 +90,7 @@
       caution: "Más concentración (10 %) no está demostrado que sea mejor y a algunos les irrita.",
       products: ["CeraVe PM Facial Moisturizing Lotion (4 %)", "La Roche-Posay Effaclar Duo+", "The Ordinary Niacinamide 10% + Zinc 1%"] },
     salicilico: { name: "Ácido salicílico 0,5–2 % (BHA)", level: "B", sources: ["cochrane2020"],
-      what: "Exfolia dentro del poro: puntos negros, poros marcados y pelos enquistados tras afeitarte.",
+      what: "Exfolia dentro del poro: puntos negros, poros marcados y pelos enquistados tras afeitarte o depilarte.",
       when: "4–8 semanas.", how: "Noche, 2–3 veces por semana (en días sin retinoide si irrita).",
       caution: "La evidencia para acné es de baja calidad: úsalo de apoyo, no como base.",
       products: ["Paula's Choice Skin Perfecting 2% BHA Liquid", "CeraVe SA Smoothing Cleanser"] },
@@ -131,7 +131,7 @@
   const CONCERNS = [
     { id: "acne", label: "Granos" }, { id: "puntos", label: "Puntos negros y poros" }, { id: "manchas", label: "Manchas o marcas de granos" },
     { id: "arrugas", label: "Arrugas / verme mayor" }, { id: "brillo", label: "Brillo y grasa" }, { id: "rojez", label: "Rojeces" },
-    { id: "afeitado", label: "Irritación o pelos enquistados al afeitar" }, { id: "apagada", label: "Piel apagada o cansada" },
+    { id: "afeitado", label: "Irritación o pelos enquistados al afeitar o depilar" }, { id: "apagada", label: "Piel apagada o cansada" },
   ];
 
   function step(id, tipo, pais) {
@@ -145,8 +145,9 @@
    * Rutina a partir del test.
    * @param {{tipo?:string, sensible?:string, edad?:string, receta?:string}} a
    * @param {string[]} concerns  ids de CONCERNS
+   * @param {"hombre"|"mujer"} [sexo]  solo cambia el consejo de afeitado (la barba corta no aplica a mujer)
    */
-  function routine(a = {}, concerns = []) {
+  function routine(a = {}, concerns = [], sexo = "hombre") {
     const has = (c) => concerns.includes(c);
     const tipo = a.tipo || "normal", sensitive = a.sensible === "si", rx = a.receta === "si", pais = a.pais || null;
     const am = ["limpiador"], pm = ["limpiador"], notes = [];
@@ -168,7 +169,9 @@
     if (sensitive && retinoid) notes.push("Piel sensible: empieza el retinoide 2 noches por semana y ponlo encima del hidratante (“sándwich”) para que irrite menos.");
     if (pm.includes("salicilico") && retinoid) notes.push("No uses el salicílico la misma noche que el retinoide: alterna noches.");
     if (am.includes("peroxido") && retinoid === "tretinoina") notes.push("Peróxido por la mañana y tretinoína por la noche: juntos se anulan.");
-    if (has("afeitado")) notes.push("Afeitado: a favor del pelo, con cuchilla de 1–2 hojas o recortadora, gel sin alcohol y piel húmeda. Si salen muchos pelos enquistados, deja barba corta de 1–2 mm.");
+    if (has("afeitado")) notes.push(sexo === "mujer"
+      ? "Afeitado o depilación: a favor del pelo, con cuchilla de 1–2 hojas, gel sin alcohol y piel húmeda."
+      : "Afeitado: a favor del pelo, con cuchilla de 1–2 hojas o recortadora, gel sin alcohol y piel húmeda. Si salen muchos pelos enquistados, deja barba corta de 1–2 mm.");
     if (has("acne")) notes.push("Si tienes granos grandes, dolorosos o que dejan cicatriz, ve al dermatólogo: hay tratamientos orales que funcionan mucho mejor.");
     notes.push("Introduce un producto nuevo cada 2 semanas: si algo te irrita, sabrás cuál es. Constancia > cantidad.");
     return {

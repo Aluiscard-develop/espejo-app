@@ -61,6 +61,14 @@
     <!-- Mi foto -->
     <div class="panel" data-panel="foto">
       <fieldset>
+        <legend>Recomendaciones para</legend>
+        <div class="row" role="radiogroup" aria-label="Recomendaciones para">
+          <button type="button" role="radio" data-sexo="hombre" aria-checked="true"><span aria-hidden="true">👨</span> Hombre</button>
+          <button type="button" role="radio" data-sexo="mujer" aria-checked="false"><span aria-hidden="true">👩</span> Mujer</button>
+        </div>
+        <p class="hint">Cambia los cortes, la barba o los pendientes, la ropa y el maquillaje. Puedes cambiarlo cuando quieras.</p>
+      </fieldset>
+      <fieldset>
         <legend>Tu foto</legend>
         <ul class="checks">
           <li>☀️ Luz de día de una ventana, de frente (sin luz amarilla ni flash)</li>
@@ -119,9 +127,9 @@
         <legend>Sobre ti</legend>
         <label><span>Tu pelo</span>
           <select id="hair"><option value="liso">Liso</option><option value="ondulado">Ondulado</option><option value="rizado">Rizado</option></select></label>
-        <label><span>Tu barba en las mejillas</span>
+        <label id="beard-row"><span>Tu barba en las mejillas</span>
           <select id="beard"><option value="2">Sale completa</option><option value="1">Media</option><option value="0">Escasa o irregular</option></select></label>
-        <label class="check"><input id="receding" type="checkbox"> <span>Tengo entradas</span></label>
+        <label class="check" id="receding-row"><input id="receding" type="checkbox"> <span>Tengo entradas</span></label>
       </fieldset>
     </div>
 
@@ -137,7 +145,7 @@
         <div class="row" role="radiogroup" aria-label="Modo del probador">
           <button type="button" role="radio" id="mode-color" aria-checked="true">👕 Color de prenda</button>
           <button type="button" role="radio" id="mode-glasses" aria-checked="false">👓 Gafas</button>
-          <button type="button" role="radio" id="mode-hair" aria-checked="false">💇 Pelo y barba</button>
+          <button type="button" role="radio" id="mode-hair" aria-checked="false">💇 <span id="mode-hair-label">Pelo y barba</span></button>
         </div>
         <p class="hint" id="probador-hint">Toca una prenda en la foto (o abre la cámara y toca tu ropa) y te digo si ese color te favorece.</p>
         <button id="cam-open3" type="button">📷 Abrir la cámara</button>
@@ -148,12 +156,12 @@
         <div class="hair-swatches" id="hair-colors" role="radiogroup" aria-label="Color de pelo"></div>
         <label><span>Otro color</span><input id="hair-custom" type="color" value="#6b4423"></label>
         <label><span>Intensidad <output id="o-hstrength"></output></span><input id="hair-strength" type="range" min="30" max="100" value="80"></label>
+        <button id="hair-compare" type="button">Mantén pulsado: ver el original</button>
       </fieldset>
       <fieldset id="beard-tools" hidden>
         <legend>Barba</legend>
         <div class="chips" id="beard-picker" role="radiogroup" aria-label="Estilo de barba"></div>
         <label><span>Densidad <output id="o-bdensity"></output></span><input id="beard-density" type="range" min="30" max="100" value="75"></label>
-        <button id="hair-compare" type="button">Mantén pulsado: ver el original</button>
         <p class="hint">Simulación aproximada: cambia color y barba, no el corte. La barba simulada tapa la tuya si ya tienes.</p>
       </fieldset>
       <fieldset id="glasses-tools" hidden>

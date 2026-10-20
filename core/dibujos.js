@@ -1,4 +1,4 @@
-// Pictogramas SVG generados por código (D-15): formas de cara, cortes, barbas, monturas y conjuntos.
+// Pictogramas SVG generados por código (D-15): formas de cara, cortes, barbas, pendientes, monturas y conjuntos.
 // Puro: devuelve cadenas SVG con atributos de presentación (la CSP prohíbe `style=` en línea).
 (function (root, factory) {
   const api = factory();
@@ -58,8 +58,14 @@
 
   // ---- cabeza base para cortes y barbas ----
   const HEAD = "M50,28 C67,28 76,42 76,60 C76,80 66,96 50,96 C34,96 24,80 24,60 C24,42 33,28 50,28Z";
-  function head(inner, label, beardLayer = "") {
+  // `back` = pelo por detrás de la cabeza (melenas); `fem` = rasgos femeninos (pestañas, labios).
+  function head(inner, label, beardLayer = "", back = "", fem = false) {
+    const lips = fem
+      ? `<path d="M44,81 Q47,79 50,80.5 Q53,79 56,81 Q50,86 44,81Z" fill="#B5525A"/>`
+      : `<path d="M44,81 Q50,84 56,81" stroke="#9A4A40" stroke-width="1.8" fill="none" stroke-linecap="round"/>`;
+    const lashes = fem ? `<path d="M37,60 L35,58 M38,59 L37,57 M63,60 L65,58 M62,59 L63,57" stroke-width="1"/>` : "";
     return wrap("0 0 100 120", label,
+      back +
       `<path d="M40,92 L40,112 L60,112 L60,92Z" fill="${SKIN}" stroke="${SKIN_LINE}" stroke-width="1.5"/>` +
       `<ellipse cx="23.5" cy="62" rx="4" ry="7" fill="${SKIN}" stroke="${SKIN_LINE}" stroke-width="1.5"/>` +
       `<ellipse cx="76.5" cy="62" rx="4" ry="7" fill="${SKIN}" stroke="${SKIN_LINE}" stroke-width="1.5"/>` +
@@ -67,8 +73,8 @@
       beardLayer +
       `<g stroke="${INK}" stroke-width="1.6" stroke-linecap="round" fill="none">` +
       `<path d="M36,55 Q41,52 45,55 M55,55 Q59,52 64,55"/><circle cx="41" cy="61" r="1.6" fill="${INK}"/><circle cx="59" cy="61" r="1.6" fill="${INK}"/>` +
-      `<path d="M50,63 L48,72 L52,72" stroke-width="1.2"/></g>` +
-      `<path d="M44,81 Q50,84 56,81" stroke="#9A4A40" stroke-width="1.8" fill="none" stroke-linecap="round"/>` +
+      `<path d="M50,63 L48,72 L52,72" stroke-width="1.2"/>${lashes}</g>` +
+      lips +
       inner);
   }
 
@@ -94,6 +100,53 @@
     sides: `<path d="M19,66 C17,34 33,20 50,20 C67,20 83,34 81,66 C79,56 75,47 69,42 C59,37 41,37 31,42 C25,47 21,56 19,66Z" fill="${HAIR}"/>`,
     bowl: `<path d="M22,62 C19,30 34,18 50,18 C66,18 81,30 78,62 L77,48 C68,46 32,46 23,48Z" fill="${HAIR}"/>`,
     receding: `<path d="M24,56 C22,36 30,28 36,27 C40,34 46,30 50,30 C54,30 60,34 64,27 C70,28 78,36 76,56 ${CAP_BOTTOM}" fill="${HAIR}"/>`,
+  };
+
+  // Peinados de mujer: `back` va detrás de la cabeza (largo de la melena), `front` enmarca la cara.
+  const FACE_WINDOW = "C74,70 72,52 66,44 C58,38 42,38 34,44 C28,52 26,70";
+  const TIGHT_CAP = `<path d="M24,56 C22,30 36,22 50,22 C64,22 78,30 76,56 ${CAP_BOTTOM}" fill="${HAIR}"/>`;
+  const HAIRCUTS_F = {
+    pixie: { front: `<path d="M24,58 C22,30 36,20 52,20 C66,20 78,30 76,56 C75,48 72,44 68,42 C60,40 50,43 40,51 C34,51 30,46 28,48 C26,50 25,53 24,58Z" fill="${HAIR}"/>` +
+      `<path d="M66,26 Q56,30 44,44 M72,32 Q62,36 52,46" stroke="#4A3A35" stroke-width="1.2" fill="none"/>` },
+    bob: { back: `<path d="M17,90 C12,52 26,19 50,19 C74,19 88,52 83,90 Q50,96 17,90Z" fill="${HAIR}"/>`,
+      front: `<path d="M22,88 C17,52 30,21 50,21 C70,21 83,52 78,88 L72,88 ${FACE_WINDOW} 28,88Z" fill="${HAIR}"/>` },
+    lob: { back: `<path d="M15,106 C8,52 26,17 50,17 C74,17 92,52 85,106 Q50,110 15,106Z" fill="${HAIR}"/>`,
+      front: `<path d="M20,104 C14,52 30,19 50,19 C70,19 86,52 80,104 L72,104 ${FACE_WINDOW} 28,104Z" fill="${HAIR}"/>` },
+    long: { back: `<path d="M13,120 C5,52 26,15 50,15 C74,15 95,52 87,120 L80,114 L74,120 L26,120 L20,114Z" fill="${HAIR}"/>`,
+      front: `<path d="M19,118 C12,52 30,18 50,18 C70,18 88,52 81,118 L74,110 ${FACE_WINDOW} 26,110Z" fill="${HAIR}"/>` },
+    waves: { back: `<path d="M14,112 C4,96 14,86 10,72 C6,40 28,16 50,16 C72,16 94,40 90,72 C86,86 96,96 86,112 Q50,118 14,112Z" fill="${HAIR}"/>`,
+      front: `<path d="M19,108 C12,52 30,18 50,18 C70,18 88,52 81,108 L74,108 ${FACE_WINDOW} 26,108Z" fill="${HAIR}"/>` +
+        `<path d="M24,70 Q19,80 25,90 Q30,98 23,106 M76,70 Q81,80 75,90 Q70,98 77,106" stroke="#4A3A35" stroke-width="1.2" fill="none"/>` },
+    bangs: { back: `<path d="M16,100 C10,52 26,18 50,18 C74,18 90,52 84,100 Q50,104 16,100Z" fill="${HAIR}"/>`,
+      front: `<path d="M21,98 C15,52 30,20 50,20 C70,20 85,52 79,98 L73,98 C75,70 74,56 72,47 L28,47 C26,56 25,70 27,98Z" fill="${HAIR}"/>` },
+    curtain: { back: `<path d="M14,112 C6,52 26,16 50,16 C74,16 94,52 86,112 Q50,116 14,112Z" fill="${HAIR}"/>`,
+      front: `<path d="M20,110 C14,52 30,19 50,19 C70,19 86,52 80,110 L73,110 C75,74 73,56 68,48 Q60,40 50,31 Q40,40 32,48 C27,56 25,74 27,110Z" fill="${HAIR}"/>` },
+    sideswept: { back: `<path d="M15,104 C8,52 26,17 50,17 C74,17 92,52 85,104 Q50,108 15,104Z" fill="${HAIR}"/>`,
+      front: `<path d="M21,102 C15,52 30,20 50,20 C70,20 85,52 79,102 L73,102 C75,70 74,56 70,46 C60,42 44,42 34,52 C30,58 27,70 27,102Z" fill="${HAIR}"/>` },
+    crown: { back: `<path d="M14,112 C6,52 26,16 50,16 C74,16 94,52 86,112 Q50,116 14,112Z" fill="${HAIR}"/>`,
+      front: `<path d="M20,110 C14,60 22,30 30,22 C38,4 62,4 70,22 C78,30 86,60 80,110 L73,110 ${FACE_WINDOW} 27,110Z" fill="${HAIR}"/>` },
+    flat: { back: `<path d="M17,118 L18,40 C20,22 34,18 50,18 C66,18 80,22 82,40 L83,118Z" fill="${HAIR}"/>`,
+      front: `<path d="M22,116 L24,44 C26,28 38,22 50,22 C62,22 74,28 76,44 L78,116 L73,116 L72,50 C70,40 60,32 50,26 C40,32 30,40 28,50 L27,116Z" fill="${HAIR}"/>` },
+    ponytail: { back: `<path d="M70,30 C86,34 90,62 82,96 C80,72 76,48 64,34Z" fill="${HAIR}"/>`, front: TIGHT_CAP },
+    updo: { back: `<circle cx="50" cy="19" r="11" fill="${HAIR}"/>`, front: TIGHT_CAP },
+  };
+
+  // Pendientes: dibujados desde el lóbulo (0,0); el derecho es el espejo del izquierdo.
+  const EARRINGS = {
+    stud: `<circle cx="0" cy="1" r="2.2"/>`,
+    studbig: `<circle cx="0" cy="1.5" r="3.8"/>`,
+    hoopsmall: `<circle cx="0" cy="4" r="4" fill="none" stroke-width="1.6"/>`,
+    hoop: `<circle cx="0" cy="7" r="7" fill="none" stroke-width="1.8"/>`,
+    hoopbig: `<circle cx="0" cy="11" r="11" fill="none" stroke-width="2"/>`,
+    drop: `<path d="M0,0 V3" fill="none" stroke-width="1"/><path d="M0,3 C-3.5,8 -3.5,11 0,12 C3.5,11 3.5,8 0,3Z"/>`,
+    longdrop: `<path d="M0,0 V4" fill="none" stroke-width="1"/><path d="M0,4 C-3,12 -3,17 0,18 C3,17 3,12 0,4Z"/>`,
+    long: `<path d="M0,0 V22" fill="none" stroke-width="1.2"/><circle cx="0" cy="23" r="1.8"/>`,
+    chandelier: `<path d="M0,0 V3" fill="none" stroke-width="1"/><path d="M0,3 L7,15 L-7,15Z"/><circle cx="-7" cy="17" r="1.3"/><circle cx="0" cy="17" r="1.3"/><circle cx="7" cy="17" r="1.3"/>`,
+    point: `<path d="M-4.5,1 L4.5,1 L0,15Z"/>`,
+    diamond: `<path d="M0,1 L4.5,8 L0,15 L-4.5,8Z"/>`,
+    geo: `<rect x="-2.5" y="1" width="5" height="15" rx=".5"/>`,
+    square: `<rect x="-3.5" y="1" width="7" height="7"/>`,
+    cluster: `<circle cx="0" cy="2" r="2.2"/><circle cx="-2.6" cy="5.6" r="2.2"/><circle cx="2.6" cy="5.6" r="2.2"/><circle cx="0" cy="9" r="2.2"/>`,
   };
 
   const BEARD_REGION = "M24,60 C24,82 34,101 50,102 C66,101 76,82 76,60 C73,68 69,73 63,75 C58,72 42,72 37,75 C31,73 27,68 24,60Z";
@@ -126,6 +179,7 @@
     big: lens("M12,6 H53 Q56,6 56,9 V40 Q56,44 52,44 H14 Q10,44 10,40 V9 Q10,6 12,6Z"),
     bottomwide: lens("M18,14 H50 Q54,14 55,18 L56,32 Q55,40 46,40 H18 Q9,40 10,30 L12,20 Q13,14 18,14Z"),
     small: lens("M22,18 H48 Q50,18 50,20 V30 Q50,32 48,32 H22 Q20,32 20,30 V20 Q20,18 22,18Z"),
+    cateye: lens("M5,8 Q14,13 24,13 H52 Q56,13 55,18 Q53,34 40,38 Q26,40 17,33 Q11,26 10,18 Q8,12 5,8Z"),
   };
   const BRIDGE = `<path d="M55,22 Q60,18 65,22" fill="none"/><path d="M11,18 L2,16 M109,18 L118,16" />`;
 
@@ -137,6 +191,17 @@
 
   // ---- texto de la recomendación → dibujo ----
   const ICONS = {
+    cutF: [
+      [/pixie/i, "pixie"], [/lob|bob largo/i, "lob"], [/bob/i, "bob"], [/cortina/i, "curtain"], [/flequillo recto/i, "bangs"],
+      [/coronilla|volumen arriba/i, "crown"], [/ondas|volumen a la altura/i, "waves"], [/tirante/i, "ponytail"],
+      [/raya al centro|pegado|lisa/i, "flat"], [/flequillo lateral|raya lateral/i, "sideswept"], [/melena|capas/i, "long"],
+    ],
+    earring: [
+      [/chandelier|base más ancha|base ancha|triángulo/i, "chandelier"], [/punta/i, "point"], [/rombo/i, "diamond"], [/racimo/i, "cluster"],
+      [/cuadrados|angulosos/i, "square"], [/rectangulares/i, "geo"], [/gota alargada|lágrima/i, "longdrop"], [/largos/i, "long"],
+      [/gota|curvos|ovalados/i, "drop"], [/enormes|aros grandes/i, "hoopbig"], [/aros pequeños/i, "hoopsmall"], [/aros/i, "hoop"],
+      [/botón grande|cortos y anchos/i, "studbig"], [/botón|pequeños/i, "stud"],
+    ],
     cut: [
       [/pompadour/i, "pompadour"], [/faux hawk|cresta/i, "fauxhawk"], [/quiff|tupé/i, "quiff"],
       [/curly|rizo/i, "curly"], [/crop|flequillo/i, "crop"], [/hacia atrás|tirante/i, "slick"],
@@ -151,7 +216,7 @@
       [/corta/i, "box"],
     ],
     glasses: [
-      [/browline|clubmaster|parte superior/i, "browline"], [/wayfarer/i, "wayfarer"], [/aviador/i, "aviator"], [/panto/i, "panto"],
+      [/ojo de gato/i, "cateye"], [/browline|clubmaster|parte superior/i, "browline"], [/wayfarer/i, "wayfarer"], [/aviador/i, "aviator"], [/panto/i, "panto"],
       [/al aire|sin montura/i, "rimless"], [/redondas/i, "round"], [/ovaladas/i, "oval"],
       [/parte inferior más ancha|base más ancha|base ancha/i, "bottomwide"], [/grandes|altura|enormes/i, "big"],
       [/pequeñas|estrechas/i, "small"], [/cuadradas/i, "square"], [/rectangular/i, "rect"], [/puente/i, "wayfarer"],
@@ -163,25 +228,43 @@
     return null;
   }
 
-  function haircut(id, label) { return head(HAIRCUTS[id] || HAIRCUTS.crew, label || id); }
+  function haircut(id, label) {
+    const f = HAIRCUTS_F[id];
+    return f ? head(f.front, label || id, "", f.back || "", true) : head(HAIRCUTS[id] || HAIRCUTS.crew, label || id);
+  }
+  function earring(id, label, metal = "#C9A227") {
+    const e = EARRINGS[id] || EARRINGS.stud;
+    const pair = `<g fill="${metal}" stroke="${metal}" stroke-width=".6">` +
+      `<g transform="translate(23.5 68)">${e}</g><g transform="translate(76.5 68) scale(-1 1)">${e}</g></g>`;
+    return head(HAIRCUTS_F.updo.front + pair, label || id, "", HAIRCUTS_F.updo.back, true);
+  }
   function beard(id, label) { return head(HAIRCUTS.crew, label || id, BEARDS[id] || ""); }
 
   // ---- conjuntos de ropa: figura sencilla rellena con colores de la paleta ----
   /**
    * @param {{top:string, outer?:string, outerType?:"blazer"|"overshirt"|"hoodie"|"jacket", bottom:string,
-   *   bottomType?:"pants"|"jeans"|"shorts", shoes:string, shoeType?:"sneaker"|"boot"|"dress", tie?:string}} o
+   *   bottomType?:"pants"|"jeans"|"shorts"|"skirt"|"midi", shoes:string, shoeType?:"sneaker"|"boot"|"dress"|"heel"|"flat",
+   *   tie?:string, fem?:boolean}} o  `fem` = figura con cintura y melena; skirt = falda a la rodilla, midi = por debajo
    */
   function outfit(o, label) {
-    const legs = o.bottomType === "shorts"
+    const hem = { skirt: 136, midi: 152 }[o.bottomType];
+    const legs = hem
+      ? `<path d="M36,${hem} L46,${hem} L46,168 L37,168Z M54,${hem} L64,${hem} L63,168 L54,168Z" fill="${SKIN}"/>` +
+        `<path d="M31,96 L69,96 L${hem === 136 ? 76 : 79},${hem} L${hem === 136 ? 24 : 21},${hem}Z" fill="${o.bottom}"/>`
+      : o.bottomType === "shorts"
       ? `<path d="M34,96 L66,96 L68,128 L52,128 L50,108 L48,128 L32,128Z" fill="${o.bottom}"/>` +
         `<path d="M34,128 L46,128 L46,168 L35,168Z M54,128 L66,128 L65,168 L54,168Z" fill="${SKIN}"/>`
       : `<path d="M34,96 L66,96 L67,168 L54,168 L50,112 L46,168 L33,168Z" fill="${o.bottom}"/>` +
         (o.bottomType === "jeans" ? `<path d="M50,98 V112 M38,100 Q42,104 46,100" stroke="#F2D27A" stroke-width=".8" fill="none" opacity=".8"/>` : "");
-    const shoe = o.shoeType === "boot"
+    const shoe = o.shoeType === "heel"
+      ? `<path d="M36,167 L46,167 L48,174 L40,174 L37,177 L35,177Z M54,167 L64,167 L65,177 L63,177 L60,174 L52,174Z" fill="${o.shoes}"/>`
+      : o.shoeType === "flat"
+      ? `<path d="M35,168 L47,168 L48,175 L32,175 Q32,170 35,168Z M53,168 L65,168 Q68,170 68,175 L52,175Z" fill="${o.shoes}"/>`
+      : o.shoeType === "boot"
       ? `<path d="M32,160 L47,160 L48,176 L28,176 Q28,170 32,168Z M53,160 L68,160 L72,168 Q72,176 72,176 L52,176Z" fill="${o.shoes}"/>`
       : `<path d="M33,168 L47,168 L48,176 L26,176 Q26,170 33,168Z M53,168 L67,168 Q74,170 74,176 L52,176Z" fill="${o.shoes}"/>` +
         (o.shoeType === "sneaker" ? `<path d="M26,176 H48 M52,176 H74" stroke="#FFFFFF" stroke-width="2"/>` : "");
-    const torso = "M30,36 Q50,30 70,36 L78,44 L74,98 L26,98 L22,44Z";
+    const torso = o.fem ? "M31,36 Q50,30 69,36 L76,44 L68,72 L71,98 L29,98 L32,72 L24,44Z" : "M30,36 Q50,30 70,36 L78,44 L74,98 L26,98 L22,44Z";
     const arms = (fill) => `<path d="M22,44 L12,92 L20,94 L30,56Z M78,44 L88,92 L80,94 L70,56Z" fill="${fill}"/>`;
     let top = arms(o.outer || o.top) + `<path d="${torso}" fill="${o.top}"/>`;
     if (o.tie) top += `<path d="M48,38 L52,38 L54,72 L50,78 L46,72Z" fill="${o.tie}"/>`;
@@ -192,10 +275,11 @@
       top += `<path d="M30,36 L22,44 L26,98 L46,98 L50,66 L44,34Z M70,36 L78,44 L74,98 L54,98 L50,66 L56,34Z" fill="${o.outer}"/>${lapel}`;
       if (o.outerType === "overshirt") top += `<path d="M30,58 H42 M58,58 H70" stroke="#00000033" stroke-width="1.5"/>`;
     }
-    const headG = `<path d="M44,26 L56,26 L56,34 L44,34Z" fill="${SKIN}"/><circle cx="50" cy="16" r="12" fill="${SKIN}"/><path d="M38,14 Q40,2 50,3 Q61,3 62,14 Q56,8 50,9 Q43,9 38,14Z" fill="${HAIR}"/>` +
+    const mane = o.fem ? `<path d="M36,16 Q34,0 50,1 Q66,0 64,16 L67,44 Q50,48 33,44Z" fill="${HAIR}"/>` : "";
+    const headG = mane + `<path d="M44,26 L56,26 L56,34 L44,34Z" fill="${SKIN}"/><circle cx="50" cy="16" r="12" fill="${SKIN}"/><path d="M38,14 Q40,2 50,3 Q61,3 62,14 Q56,8 50,9 Q43,9 38,14Z" fill="${HAIR}"/>` +
       `<circle cx="16" cy="95" r="4" fill="${SKIN}"/><circle cx="84" cy="95" r="4" fill="${SKIN}"/>`;
     return wrap("0 0 100 180", label || "Conjunto", headG + legs + shoe + top, "pic outfit");
   }
 
-  return { FACE_PROTOS, HAIRCUTS, BEARDS, GLASSES, faceShape, faceOutline, haircut, beard, glasses, outfit, iconFor, smoothPath };
+  return { FACE_PROTOS, HAIRCUTS, HAIRCUTS_F, BEARDS, EARRINGS, GLASSES, faceShape, faceOutline, haircut, beard, earring, glasses, outfit, iconFor, smoothPath };
 });

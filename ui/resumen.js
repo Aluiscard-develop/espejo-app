@@ -1,7 +1,7 @@
 // Pestaña "Resumen": todo el perfil en una ficha; se descarga como PNG (HU-28) o se imprime (nada se almacena).
 (function () {
   "use strict";
-  const { dibujos, ficha, png, app } = window.FA;
+  const { dibujos, ficha, png, color, app } = window.FA;
   const { $, el, pic, swatch } = app;
   const rep = $("report-resumen");
 
@@ -31,6 +31,7 @@
       for (const hex of c.season.avoid) swatch(hex, a, hex, "strip-cell");
       el("p", `💍 ${c.jewelry.main} · ${c.jewelry.finish.toLowerCase()}`, col);
       el("p", `👓 Monturas: ${c.jewelry.frames.join(", ")}`, col);
+      if (app.profile.sexo === "mujer") el("p", `💄 Labios: ${color.makeup(c.season.id, c.axes).lips.map(([n]) => n.toLowerCase()).join(", ")}`, col);
     } else pending(col, "Haz la colorimetría", "color");
 
     const fc = el("article", "", grid, "sum-card");
@@ -39,8 +40,10 @@
       el("p", `Cara ${f.shape.name.toLowerCase()}`, fc, "big");
       const row = el("div", "", fc, "sum-pics");
       const add = (svg, cap) => { const fig = el("figure", "", row); pic(svg, fig); el("figcaption", cap, fig); };
-      for (const cut of f.cuts.slice(0, 2)) { const id = dibujos.iconFor("cut", cut.title); if (id) add(dibujos.haircut(id, cut.title), cut.title); }
+      const fem = f.sexo === "mujer";
+      for (const cut of f.cuts.slice(0, 2)) { const id = dibujos.iconFor(fem ? "cutF" : "cut", cut.title); if (id) add(dibujos.haircut(id, cut.title), cut.title); }
       const b = f.beards[0]; if (b) { const id = dibujos.iconFor("beard", b.title); if (id) add(dibujos.beard(id, b.title), b.title); }
+      const er = f.earrings[0]; if (er) { const id = dibujos.iconFor("earring", er.title); if (id) add(dibujos.earring(id, er.title, c && c.jewelry.swatch[0]), er.title); }
       const g = f.glasses[0]; if (g) { const id = dibujos.iconFor("glasses", g.title); if (id) add(dibujos.glasses(id, g.title), g.title); }
       el("p", `✖ Evita: ${f.cutsAvoid[0]}`, fc, "hint");
     } else pending(fc, "Marca tu cara", "cara");
@@ -68,9 +71,10 @@
 
   $("print").addEventListener("click", () => { render(); window.print(); });
 
-  // SVG → imagen → canvas → PNG re-codificado (sin EXIF) con la marca noai, como el filtro anime.
+  // SVG → imagen → canvas → PNG re-codificado (sin EXIF) con la marca noai.
   $("save-ficha").addEventListener("click", () => {
-    const { svg, width, height } = ficha.build(app.profile);
+    const c = app.profile.color;
+    const { svg, width, height } = ficha.build({ ...app.profile, makeup: c ? color.makeup(c.season.id, c.axes) : null });
     const img = new Image();
     const src = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
     img.onload = () => {

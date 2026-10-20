@@ -45,7 +45,8 @@
   }
 
   /**
-   * @param {{color?:object, face?:object, estilo?:object, piel?:object}} p  app.profile
+   * @param {{sexo?:string, makeup?:object, color?:object, face?:object, estilo?:object, piel?:object}} p
+   *   app.profile; `makeup` (color.makeup) solo se usa para mujer
    * @returns {{svg:string, width:number, height:number}}
    */
   function build(p) {
@@ -55,13 +56,14 @@
     y += 80;
 
     if (p.color) {
-      const c = p.color, j = c.jewelry, h = 400, x = PAD + 24;
+      const c = p.color, j = c.jewelry, mk = p.sexo === "mujer" ? p.makeup : null, h = mk ? 432 : 400, x = PAD + 24;
       let b = text(x, y + 82, `${c.season.name} · subtono ${c.traits.undertone.toLowerCase()}, ${c.traits.depth.toLowerCase()}, intensidad ${c.traits.clarity.toLowerCase()}`, { size: 20, weight: 600 }).svg;
       b += text(x, y + 120, "Tus mejores colores", { size: 15, fill: MUTED }).svg + swatches(c.season.best, x, y + 132, 70, 14);
       b += text(x, y + 236, "Neutros", { size: 15, fill: MUTED }).svg + swatches(c.season.neutrals, x, y + 248, 52, 10);
       b += text(x + 520, y + 236, "Evitar cerca de la cara", { size: 15, fill: MUTED }).svg + swatches(c.season.avoid, x + 520, y + 248, 52, 10, true);
       b += text(x, y + 340, `Joyería: ${j.main} · ${j.finish}`, { size: 18, max: 95 }).svg;
       b += text(x, y + 372, `Monturas: ${j.frames.join(", ")}`, { size: 18 }).svg;
+      if (mk) b += text(x, y + 404, `Maquillaje: labios ${mk.lips.map(([n]) => n.toLowerCase()).join(", ")} · colorete ${mk.blush.map(([n]) => n.toLowerCase()).join(", ")}`, { size: 18, max: 95 }).svg;
       body += section("🎨 Color", y, h, b);
       y += h + 24;
     }
@@ -70,9 +72,11 @@
       const f = p.face, h = 330, x = PAD + 24;
       let b = place(dibujos.faceShape(f.shape.id, f.shape.name), x, y + 64, 150, 180);
       b += text(x + 75, y + 270, `Cara ${f.shape.name.toLowerCase()}`, { size: 17, weight: 600, anchor: "middle" }).svg;
-      const items = [];
-      for (const cut of f.cuts.slice(0, 2)) items.push(["cut", cut.title, dibujos.haircut]);
+      const fem = f.sexo === "mujer", items = [];
+      for (const cut of f.cuts.slice(0, 2)) items.push([fem ? "cutF" : "cut", cut.title, dibujos.haircut]);
       if (f.beards[0]) items.push(["beard", f.beards[0].title, dibujos.beard]);
+      const metal = p.color ? p.color.jewelry.swatch[0] : undefined;
+      if (f.earrings && f.earrings[0]) items.push(["earring", f.earrings[0].title, (id, t) => dibujos.earring(id, t, metal)]);
       if (f.glasses[0]) items.push(["glasses", f.glasses[0].title, (id, t) => dibujos.glasses(id, t)]);
       items.forEach(([kind, title, draw], i) => {
         const id = dibujos.iconFor(kind, title), cx = x + 210 + i * 230;
@@ -81,7 +85,7 @@
         b += kind === "glasses" ? place(draw(id, title), cx + 10, y + 110, 180, 75) : place(draw(id, title), cx + 25, y + 66, 150, 176);
         b += text(cx + 100, y + 270, title, { size: 15, anchor: "middle", max: 26 }).svg;
       });
-      body += section("💈 Cara: cortes, barba y gafas", y, h, b);
+      body += section(fem ? "💈 Cara: cortes, pendientes y gafas" : "💈 Cara: cortes, barba y gafas", y, h, b);
       y += h + 24;
     }
 

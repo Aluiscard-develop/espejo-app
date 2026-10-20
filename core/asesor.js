@@ -1,5 +1,5 @@
 // Asesor de estilo: a partir de 8 puntos que marca la persona sobre su foto de frente, estima la
-// forma de la cara y devuelve cortes, gafas y barbas recomendados. Sin modelos ni red: geometría
+// forma de la cara y devuelve cortes, gafas y barbas (hombre) o pendientes (mujer) recomendados. Sin modelos ni red: geometría
 // (proporciones) + tabla de recomendaciones de visagismo. Es orientativo, no ciencia exacta.
 (function (root, factory) {
   const api = factory();
@@ -283,44 +283,199 @@
     },
   };
 
+  // Mujer: los mismos objetivos de visagismo por forma, con cortes de peluquería femenina y pendientes
+  // en lugar de barba. `glassesExtra` se añade delante de las gafas comunes (el ojo de gato sube la vista).
+  const RECS_MUJER = {
+    ovalada: {
+      cuts: [
+        ["Bob a la altura de la mandíbula", "deja ver una forma que ya es equilibrada"],
+        ["Melena larga en capas", "movimiento sin alargar de más"],
+        ["Pixie texturizado", "si te atreves con corto, tu forma lo admite"],
+        ["Flequillo cortina", "enmarca los ojos sin tapar la cara"],
+      ],
+      cutsAvoid: ["Flequillo recto, largo y pesado que tape la frente (acorta y redondea)"],
+      glassesExtra: [["Ojo de gato", "acompaña tus pómulos y da un toque retro"]],
+      earrings: [
+        ["Aros medianos", "casi todo te queda; los aros son la apuesta segura"],
+        ["Pendientes de gota", "acompañan el óvalo"],
+        ["Botón o pendientes pequeños", "para diario, discretos y favorecedores"],
+      ],
+      earringsAvoid: ["Pendientes enormes que tapen el contorno de la cara"],
+    },
+    redonda: {
+      cuts: [
+        ["Melena larga en capas por debajo del mentón", "las líneas verticales alargan la cara"],
+        ["Lob (bob largo) asimétrico", "la asimetría rompe la redondez"],
+        ["Raya lateral con volumen en la coronilla", "la altura arriba alarga"],
+        ["Pixie con volumen arriba y flequillo lateral", "lleva la vista hacia arriba y en diagonal"],
+      ],
+      cutsAvoid: ["Bob redondo a la altura de las mejillas", "Flequillo recto y corto (corta la cara a lo ancho)", "Raya al centro con el pelo pegado"],
+      glassesExtra: [["Ojo de gato", "las puntas hacia arriba añaden ángulos y elevan"]],
+      earrings: [
+        ["Pendientes largos y colgantes", "dibujan una línea vertical que alarga"],
+        ["Gota alargada o lágrima", "estilizan el cuello y la cara"],
+        ["Geométricos rectangulares", "aportan los ángulos que la cara no tiene"],
+      ],
+      earringsAvoid: ["Aros grandes redondos (repiten la forma)", "Botón grande y redondo"],
+    },
+    cuadrada: {
+      cuts: [
+        ["Melena en capas con ondas suaves", "las ondas suavizan la mandíbula"],
+        ["Flequillo lateral desfilado", "rompe las líneas rectas de la frente"],
+        ["Lob con puntas desfiladas por debajo de la mandíbula", "termina donde no marca el ángulo"],
+        ["Raya lateral", "la diagonal suaviza la simetría cuadrada"],
+      ],
+      cutsAvoid: ["Bob recto justo a la altura de la mandíbula (la marca más)", "Flequillo recto y grueso", "Peinado tirante hacia atrás"],
+      glassesExtra: [["Ojo de gato", "sus curvas contrastan con la mandíbula"]],
+      earrings: [
+        ["Aros redondos", "las curvas suavizan los ángulos"],
+        ["Pendientes de gota o lágrima", "alargan y suavizan"],
+        ["Colgantes curvos y ovalados", "contrastan con una mandíbula marcada"],
+      ],
+      earringsAvoid: ["Pendientes cuadrados o geométricos angulosos (repiten la forma)"],
+    },
+    rectangular: {
+      cuts: [
+        ["Flequillo recto o cortina", "acorta la frente y la cara"],
+        ["Bob a la altura del mentón con volumen lateral", "da anchura a una cara larga"],
+        ["Ondas a los lados", "añaden volumen donde hace falta"],
+      ],
+      cutsAvoid: ["Melena muy larga y lisa (alarga más)", "Volumen alto en la coronilla"],
+      glassesExtra: [],
+      earrings: [
+        ["Botón grande o pendientes cortos y anchos", "dan anchura sin alargar"],
+        ["Aros medianos", "ensanchan a la altura de la mandíbula"],
+        ["Pendientes de racimo", "volumen a los lados de la cara"],
+      ],
+      earringsAvoid: ["Pendientes largos y finos (alargan)"],
+    },
+    alargada: {
+      cuts: [
+        ["Flequillo recto o cortina", "acorta visualmente"],
+        ["Bob con volumen a los lados", "ensancha"],
+        ["Melena media con ondas", "añade anchura"],
+      ],
+      cutsAvoid: ["Melena muy larga y lisa", "Raya al centro con el pelo pegado"],
+      glassesExtra: [],
+      earrings: [
+        ["Botón grande", "ensancha la cara"],
+        ["Aros anchos", "volumen a los lados"],
+        ["Pendientes cortos y anchos", "no alargan"],
+      ],
+      earringsAvoid: ["Colgantes largos y finos (alargan aún más)"],
+    },
+    corazon: {
+      cuts: [
+        ["Lob o bob a la altura del mentón", "pone el volumen donde la cara se estrecha"],
+        ["Flequillo lateral o cortina", "estrecha la frente visualmente"],
+        ["Melena con ondas de la mitad hacia abajo", "equilibra la frente ancha"],
+      ],
+      cutsAvoid: ["Volumen arriba y en la coronilla (agranda la frente)", "Pixie muy corto a los lados", "Peinado tirante hacia atrás"],
+      glassesExtra: [],
+      earrings: [
+        ["Pendientes con la base más ancha (chandelier o triángulo)", "llevan anchura al mentón"],
+        ["Pendientes de gota", "rellenan la zona estrecha"],
+        ["Aros medianos", "ensanchan abajo"],
+      ],
+      earringsAvoid: ["Pendientes que terminan en punta (afilan el mentón)"],
+    },
+    diamante: {
+      cuts: [
+        ["Flequillo cortina o lateral", "ensancha la frente"],
+        ["Bob a la altura del mentón", "da volumen abajo y equilibra los pómulos"],
+        ["Pixie texturizado con flequillo", "suma anchura arriba"],
+      ],
+      cutsAvoid: ["Volumen a la altura de los pómulos", "Raya al centro con el pelo pegado"],
+      glassesExtra: [["Ojo de gato", "ensancha la línea de las cejas"]],
+      earrings: [
+        ["Pendientes de lágrima o chandelier", "más anchos abajo: equilibran los pómulos"],
+        ["Botón", "no compite con los pómulos"],
+        ["Aros pequeños", "discretos y favorecedores"],
+      ],
+      earringsAvoid: ["Pendientes en forma de rombo (repiten la forma)"],
+    },
+    triangular: {
+      cuts: [
+        ["Volumen en la coronilla y capas arriba", "ensancha la parte de arriba"],
+        ["Pixie con volumen arriba", "lleva el peso arriba"],
+        ["Melena larga en capas por debajo de la mandíbula", "termina por debajo de la zona ancha"],
+      ],
+      cutsAvoid: ["Bob a la altura de la mandíbula (la ensancha)", "Pelo pegado arriba y suelto abajo"],
+      glassesExtra: [["Ojo de gato", "peso visual arriba"]],
+      earrings: [
+        ["Pendientes de gota estrecha", "alargan sin ensanchar"],
+        ["Aros pequeños", "discretos a la altura de la mandíbula"],
+        ["Botón", "no añade anchura"],
+      ],
+      earringsAvoid: ["Chandelier o pendientes con la base ancha (ensanchan la mandíbula)"],
+    },
+  };
+
   const HAIR_TIPS = {
     liso: "Pelo liso: el tupé y el quiff necesitan secador hacia arriba y pomada o cera mate para aguantar.",
     ondulado: "Pelo ondulado: deja 5–8 cm arriba y aprovecha la textura; una crema de peinado ligera basta.",
     rizado: "Pelo rizado: rizos arriba con los lados en degradado (curly top) logran el mismo efecto que un tupé.",
   };
 
+  const HAIR_TIPS_MUJER = {
+    liso: "Pelo liso: las capas y un secado con cepillo redondo dan movimiento; un spray texturizante evita que quede plano.",
+    ondulado: "Pelo ondulado: capas largas y una crema o espuma para definir la onda; no lo desfiles en exceso.",
+    rizado: "Pelo rizado: pide un corte por capas pensado para rizos (que no quede en triángulo) y define con crema y difusor.",
+  };
+
   /**
    * Informe completo.
    * @param {object} points  {id: [x, y]} en píxeles
-   * @param {{hair?: "liso"|"ondulado"|"rizado", beard?: 0|1|2, receding?: boolean}} opts
-   *   beard = lo poblada que sale en las mejillas (0 escasa, 1 media, 2 completa).
+   * @param {{sexo?: "hombre"|"mujer", hair?: "liso"|"ondulado"|"rizado", beard?: 0|1|2, receding?: boolean}} opts
+   *   beard = lo poblada que sale en las mejillas (0 escasa, 1 media, 2 completa); solo cuenta para hombre.
    */
   function advise(points, opts = {}) {
     const m = measure(points);
     if (!m) return null;
     const ranking = classify(m);
     const main = ranking[0], second = ranking[1];
-    const s = SHAPES[main.id], r = RECS[main.id];
-    const beard = opts.beard ?? 2;
-    const tips = [];
-    if (opts.hair && HAIR_TIPS[opts.hair]) tips.push(HAIR_TIPS[opts.hair]);
-    if (opts.receding) tips.push("Con entradas, evita peinarlo todo hacia atrás y tirante: la textura hacia delante (crop) o una raya lateral desenfadada las disimula.");
-    if (beard < 2) tips.push("Como la barba no sale completa en las mejillas, se priorizan estilos que no dependen de ellas; rebaja mejillas y patillas y deja más largo en mentón y bigote.");
-    tips.push("Gafas: el ancho total de la montura ≈ el de tus sienes, y la línea superior a la altura de las cejas o justo debajo.");
-    const pick = (list) => list.map(([title, why, need]) => ({ title, why, ok: need === undefined || need <= beard }));
-    const beards = pick(r.beards);
-    return {
+    const s = SHAPES[main.id], base = {
       measures: m,
       shape: { id: main.id, name: s.name, pct: main.pct, desc: s.desc, goal: s.goal },
       // una segunda forma cercana se menciona si está razonablemente cerca de la primera
       close: second.score > main.score * 0.5 ? { id: second.id, name: second.name, pct: second.pct } : null,
       ranking: ranking.map(({ id, name, pct }) => ({ id, name, pct })),
+    };
+    const glassTip = "Gafas: el ancho total de la montura ≈ el de tus sienes, y la línea superior a la altura de las cejas o justo debajo.";
+    const pickAll = (list) => list.map(([title, why]) => ({ title, why, ok: true }));
+    if (opts.sexo === "mujer") {
+      const r = RECS_MUJER[main.id], g = RECS[main.id];
+      const tips = [];
+      if (opts.hair && HAIR_TIPS_MUJER[opts.hair]) tips.push(HAIR_TIPS_MUJER[opts.hair]);
+      tips.push(glassTip, "Pendientes: cuanto más grande la pieza, más atención atrae a esa zona de la cara; úsalo a tu favor.");
+      const glassesAvoid = main.id === "corazon" ? [...g.glassesAvoid, "Ojo de gato muy marcado (carga la parte de arriba)"] : g.glassesAvoid;
+      return {
+        ...base, sexo: "mujer",
+        cuts: pickAll(r.cuts), cutsAvoid: r.cutsAvoid,
+        glasses: pickAll([...r.glassesExtra, ...g.glasses]), glassesAvoid,
+        earrings: pickAll(r.earrings), earringsAvoid: r.earringsAvoid,
+        beards: [], beardsLater: [], beardsAvoid: [],
+        tips,
+      };
+    }
+    const r = RECS[main.id];
+    const beard = opts.beard ?? 2;
+    const tips = [];
+    if (opts.hair && HAIR_TIPS[opts.hair]) tips.push(HAIR_TIPS[opts.hair]);
+    if (opts.receding) tips.push("Con entradas, evita peinarlo todo hacia atrás y tirante: la textura hacia delante (crop) o una raya lateral desenfadada las disimula.");
+    if (beard < 2) tips.push("Como la barba no sale completa en las mejillas, se priorizan estilos que no dependen de ellas; rebaja mejillas y patillas y deja más largo en mentón y bigote.");
+    tips.push(glassTip);
+    const pick = (list) => list.map(([title, why, need]) => ({ title, why, ok: need === undefined || need <= beard }));
+    const beards = pick(r.beards);
+    return {
+      ...base, sexo: "hombre",
       cuts: pick(r.cuts), cutsAvoid: r.cutsAvoid,
       glasses: pick(r.glasses), glassesAvoid: r.glassesAvoid,
       beards: beards.filter((b) => b.ok), beardsLater: beards.filter((b) => !b.ok), beardsAvoid: r.beardsAvoid,
+      earrings: [], earringsAvoid: [],
       tips,
     };
   }
 
-  return { POINTS, SHAPES, RECS, MESH, defaultPoints, fromLandmarks, measure, classify, advise };
+  return { POINTS, SHAPES, RECS, RECS_MUJER, MESH, defaultPoints, fromLandmarks, measure, classify, advise };
 });

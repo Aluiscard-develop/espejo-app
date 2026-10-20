@@ -1,4 +1,5 @@
 // Probador «Pelo y barba» (D-22): tinte sobre la máscara de pelo y barba dibujada sobre la malla de la cara.
+// Para mujer solo el color de pelo: la barba ni se muestra ni se dibuja.
 // Ambos modelos de MediaPipe se cargan solo al entrar en este modo (ui/mp.js).
 (function () {
   "use strict";
@@ -45,9 +46,11 @@
   for (const ev of ["pointerup", "pointerleave", "pointercancel", "keyup", "blur"]) $("hair-compare").addEventListener(ev, () => peek(false));
 
   // ---- modelos ----
+  const beardOn = () => app.profile.sexo !== "mujer" && st.beard !== "ninguna";
+
   async function ensureModels() {
     if (!app.source || st.busy) return;
-    const needHair = st.hair && !st.mask, needFace = st.beard !== "ninguna" && !st.landmarks;
+    const needHair = st.hair && !st.mask, needFace = beardOn() && !st.landmarks;
     if (!needHair && !needFace) return;
     st.busy = true;
     st.error = null;
@@ -55,7 +58,7 @@
     try {
       if (needHair) st.mask = await app.mp.hairMask();
       if (needFace) st.landmarks = await app.mp.faceLandmarks();
-      app.setStatus(st.beard !== "ninguna" && !st.landmarks ? "No encontré tu cara para dibujar la barba. Usa una foto de frente." : "");
+      app.setStatus(beardOn() && !st.landmarks ? "No encontré tu cara para dibujar la barba. Usa una foto de frente." : "");
     } catch (err) {
       st.error = err.message;
       app.setStatus("No se pudo usar el modelo: " + err.message, true);
@@ -138,7 +141,7 @@
       canvas.width = w; canvas.height = h;
       const pixels = st.hair && st.mask ? pelo.recolor(data, st.mask, color.hexToRgb(st.hair), +$("hair-strength").value / 100) : data;
       ctx.putImageData(new ImageData(new Uint8ClampedArray(pixels), w, h), 0, 0);
-      if (st.beard !== "ninguna" && st.landmarks) drawBeard(pelo.beardShapes(st.landmarks, w, h, st.beard), beardColor(), +$("beard-density").value / 100);
+      if (beardOn() && st.landmarks) drawBeard(pelo.beardShapes(st.landmarks, w, h, st.beard), beardColor(), +$("beard-density").value / 100);
       canvas.hidden = false;
       report();
     });
@@ -150,7 +153,8 @@
     rep.replaceChildren();
     if (!app.source) { el("p", "Sube una foto de frente en «Mi foto» para probarte colores de pelo y barbas.", rep, "empty"); return; }
     const s = color.SEASONS[st.season], fam = s.family, rec = pelo.HAIR_COLORS[fam];
-    el("h2", "💇 Pelo y barba", rep);
+    const fem = app.profile.sexo === "mujer";
+    el("h2", fem ? "💇 Color de pelo" : "💇 Pelo y barba", rep);
     if (st.hair) {
       const named = rec.find(([, hex]) => hex === st.hair);
       const near = rec.map(([n, hex]) => ({ n, d: color.deltaE(color.hexToLab(hex), color.hexToLab(st.hair)) })).sort((a, b) => a.d - b.d)[0];
@@ -160,15 +164,16 @@
     const row = el("div", "", rep, "swatches");
     for (const [n, hex] of rec) { const c = el("div", "", row, "sw-cell"); swatch(hex, c, n, "swatch big"); el("code", n, c); }
     el("p", `Evita: ${pelo.HAIR_AVOID[fam]}.`, rep, "hint");
-    if (app.profile.face) el("p", `Barbas que favorecen tu cara ${app.profile.face.shape.name.toLowerCase()}: ${app.profile.face.beards.map((b) => b.title).join(" · ")}.`, rep, "hint");
-    el("p", "Es una simulación: el color y la barba son aproximados y el corte no cambia (eso necesitaría IA generativa y una tarjeta gráfica potente). Todo se calcula en tu dispositivo.", rep, "hint");
+    if (app.profile.face && !fem) el("p", `Barbas que favorecen tu cara ${app.profile.face.shape.name.toLowerCase()}: ${app.profile.face.beards.map((b) => b.title).join(" · ")}.`, rep, "hint");
+    el("p", fem ? "Es una simulación: el color es aproximado y el corte no cambia (eso necesitaría IA generativa y una tarjeta gráfica potente). Todo se calcula en tu dispositivo." : "Es una simulación: el color y la barba son aproximados y el corte no cambia (eso necesitaría IA generativa y una tarjeta gráfica potente). Todo se calcula en tu dispositivo.", rep, "hint");
   }
 
   app.on("probador", (msg) => {
     if (msg.season) st.season = msg.season;
     if ("show" in msg) {
       st.on = msg.show;
-      $("hair-tools").hidden = $("beard-tools").hidden = !st.on;
+      $("hair-tools").hidden = !st.on;
+      $("beard-tools").hidden = !st.on || app.profile.sexo === "mujer";
       canvas.hidden = !st.on;
       if (st.on) { buildColors(); paint(); }
     }

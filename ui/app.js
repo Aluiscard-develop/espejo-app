@@ -12,7 +12,7 @@
   const app = {
     tab: "foto",
     bitmap: null, source: null, version: 0, faceBox: undefined,
-    profile: { color: null, face: null, facePoints: null, estilo: null, piel: null },
+    profile: { sexo: "hombre", color: null, face: null, facePoints: null, estilo: null, piel: null },
     on(ev, fn) { (listeners[ev] = listeners[ev] || []).push(fn); },
     emit(ev, arg) { for (const fn of listeners[ev] || []) fn(arg); },
     $,
@@ -36,6 +36,17 @@
       try { localStorage.removeItem(KEY); } catch { /* nada que borrar */ }
     },
   };
+
+  // ---- para quién son las recomendaciones (cara, estilo, maquillaje, probador) ----
+  const sexoBtns = [...document.querySelectorAll("[data-sexo]")];
+  app.setSexo = function (v) {
+    app.profile.sexo = v === "mujer" ? "mujer" : "hombre";
+    for (const b of sexoBtns) b.setAttribute("aria-checked", String(b.dataset.sexo === app.profile.sexo));
+    app.memory.save("sexo", app.profile.sexo);
+    app.emit("profile", "sexo");
+  };
+  for (const b of sexoBtns) b.addEventListener("click", () => app.setSexo(b.dataset.sexo));
+  app.on("remember", () => app.memory.save("sexo", app.profile.sexo));
 
   app.setStatus = function (msg, isError = false) {
     $("status").textContent = msg;
@@ -261,7 +272,7 @@
   const STEPS = [
     ["📷", "Tu foto", "Súbela o tómala con la cámara. De frente y con luz de día.", "foto"],
     ["🎨", "Color", "Tu estación, tu paleta y si te va el oro o la plata.", "color"],
-    ["💈", "Cara", "Tu forma de cara y los cortes, barbas y gafas que te favorecen.", "cara"],
+    ["💈", "Cara", "Tu forma de cara y los cortes, la barba o los pendientes y las gafas que te favorecen.", "cara"],
     ["👔", "Estilo", "Los estilos de ropa que mejor te van, dibujados con tus colores.", "estilo"],
     ["🪞", "Probador", "Toca una prenda y te digo si te favorece. Pruébate monturas.", "probador"],
     ["🧴", "Piel", "Una rutina con ingredientes que tienen estudios detrás.", "piel"],
@@ -298,5 +309,6 @@
     navigator.serviceWorker.register("sw.js").catch(() => { /* sin modo offline; la app funciona igual */ });
   }
 
+  app.setSexo(app.memory.load("sexo"));
   selectTab("foto");
 })();

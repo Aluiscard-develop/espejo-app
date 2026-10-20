@@ -1,4 +1,4 @@
-// Pestaña "Cara": 8 puntos sobre la foto → forma de la cara → cortes, barbas y gafas con su dibujo.
+// Pestaña "Cara": 8 puntos sobre la foto → forma de la cara → cortes, barba (hombre) o pendientes (mujer) y gafas con su dibujo.
 (function () {
   "use strict";
   const { asesor, dibujos, app } = window.FA;
@@ -92,7 +92,8 @@
   function renderReport() {
     const rep = $("report-cara");
     rep.replaceChildren();
-    const r = asesor.advise(pointsInPixels(), { hair: $("hair").value, beard: +$("beard").value, receding: $("receding").checked });
+    const fem = app.profile.sexo === "mujer";
+    const r = asesor.advise(pointsInPixels(), { sexo: app.profile.sexo, hair: $("hair").value, beard: +$("beard").value, receding: $("receding").checked });
     app.profile.facePoints = pointsInPixels();
     if (!r) { el("p", "Los puntos están amontonados: sepáralos para poder medir.", rep, "hint"); return; }
     app.profile.face = r;
@@ -123,19 +124,24 @@
       el("h4", "Mejor evita", rep, "avoid-title");
       picGrid(rep, bad, kind, draw, true);
     };
-    section("💇 Cortes de pelo", r.cuts, r.cutsAvoid, "cut", dibujos.haircut);
-    section("🧔 Barba", r.beards, r.beardsAvoid, "beard", dibujos.beard, () => {
-      if (!r.beardsLater.length) return;
-      el("h4", "Cuando la barba salga más poblada", rep, "later-title");
-      picGrid(rep, r.beardsLater, "beard", dibujos.beard);
-    });
+    section("💇 Cortes de pelo", r.cuts, r.cutsAvoid, fem ? "cutF" : "cut", dibujos.haircut);
+    if (fem) {
+      const metal = app.profile.color ? app.profile.color.jewelry.swatch[0] : undefined;
+      section("💎 Pendientes", r.earrings, r.earringsAvoid, "earring", (id, t) => dibujos.earring(id, t, metal));
+    } else {
+      section("🧔 Barba", r.beards, r.beardsAvoid, "beard", dibujos.beard, () => {
+        if (!r.beardsLater.length) return;
+        el("h4", "Cuando la barba salga más poblada", rep, "later-title");
+        picGrid(rep, r.beardsLater, "beard", dibujos.beard);
+      });
+    }
     section("👓 Gafas", r.glasses, r.glassesAvoid, "glasses", (id, t) => dibujos.glasses(id, t));
 
     const tips = el("ul", "", rep, "tips");
     for (const t of r.tips) el("li", t, tips);
     const m = r.measures;
     el("p", `Medidas: largo ÷ ancho ${m.ratio.toFixed(2)} · frente ÷ pómulos ${m.forehead.toFixed(2)} · mandíbula ÷ pómulos ${m.jaw.toFixed(2)} · ángulo de mandíbula ${Math.round(m.jawAngle)}°`, rep, "measures");
-    el("p", "Orientativo: son las reglas habituales de barberos y ópticas (visagismo). Si dudas entre dos formas, mira las recomendaciones de ambas. Enséñale los dibujos a tu barbero.", rep, "hint");
+    el("p", `Orientativo: son las reglas habituales de ${fem ? "peluquerías" : "barberos"} y ópticas (visagismo). Si dudas entre dos formas, mira las recomendaciones de ambas. Enséñale los dibujos a tu ${fem ? "peluquera o peluquero" : "barbero"}.`, rep, "hint");
   }
 
   function requestAdvice() {
@@ -217,6 +223,14 @@
   app.on("remember", rememberCara);
   for (const id of ["hair", "beard", "receding"]) $(id).addEventListener("change", () => { rememberCara(); requestAdvice(); });
   window.addEventListener("resize", () => { if (app.tab === "cara") requestAdvice(); });
+
+  function syncSexo() {
+    const fem = app.profile.sexo === "mujer";
+    $("beard-row").hidden = $("receding-row").hidden = fem;
+    if (app.source && advisor.points) renderReport(); // la ficha y el probador leen app.profile.face aunque no estés en «Cara»
+  }
+  app.on("profile", (k) => { if (k === "sexo") syncSexo(); });
+  syncSexo();
 
   app.on("photo", () => { advisor.points = null; app.profile.face = null; show(); });
   app.on("tab", show);
