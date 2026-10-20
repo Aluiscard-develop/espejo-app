@@ -1,7 +1,7 @@
-// Pestaña "Resumen": todo el perfil en una ficha; se guarda imprimiéndola como PDF (nada se almacena).
+// Pestaña "Resumen": todo el perfil en una ficha; se descarga como PNG (HU-28) o se imprime (nada se almacena).
 (function () {
   "use strict";
-  const { dibujos, app } = window.FA;
+  const { dibujos, ficha, png, app } = window.FA;
   const { $, el, pic, swatch } = app;
   const rep = $("report-resumen");
 
@@ -67,5 +67,32 @@
   }
 
   $("print").addEventListener("click", () => { render(); window.print(); });
+
+  // SVG → imagen → canvas → PNG re-codificado (sin EXIF) con la marca noai, como el filtro anime.
+  $("save-ficha").addEventListener("click", () => {
+    const { svg, width, height } = ficha.build(app.profile);
+    const img = new Image();
+    const src = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
+    img.onload = () => {
+      URL.revokeObjectURL(src);
+      const c = document.createElement("canvas");
+      c.width = width; c.height = height;
+      c.getContext("2d").drawImage(img, 0, 0);
+      c.toBlob(async (blob) => {
+        if (!blob) { app.setStatus("No se pudo exportar la ficha.", true); return; }
+        const bytes = png.addTextChunks(new Uint8Array(await blob.arrayBuffer()), {
+          Software: "Espejo", Comment: "noai, noimageai", Disclaimer: "No autorizado para entrenar IA / Not licensed for AI training",
+        });
+        const url = URL.createObjectURL(new Blob([bytes], { type: "image/png" }));
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "espejo-ficha.png";
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }, "image/png");
+    };
+    img.onerror = () => { URL.revokeObjectURL(src); app.setStatus("No se pudo dibujar la ficha.", true); };
+    img.src = src;
+  });
   app.on("tab", (t) => { if (t === "resumen") render(); });
 })();
