@@ -38,7 +38,8 @@
   }
 
   /**
-   * @returns {{mask: Float32Array, anchor: {x:number,y:number,r:number}, face: object|null, bgFraction: number}}
+   * @returns {{mask: Float32Array, anchor: {x:number,y:number,r:number}, face: object|null, faceBox: {cx:number,top:number,width:number}|null, bgFraction: number}}
+   * faceBox: caja de la piel de la cara en píxeles de la foto (la usa el asesor para colocar sus puntos).
    * mask: 1 = persona, 0 = fondo, bordes suavizados.
    */
   function detect(rgba, w, h, { tolerance = 18, sideFraction = 0.55, target = 240 } = {}) {
@@ -115,7 +116,8 @@
     const anchor = face
       ? { x: face.cx * s, y: (face.y0 + 0.15 * (face.y1 - face.y0)) * s, r: (face.x1 - face.x0) * s * 0.95 }
       : { x: w / 2, y: h * 0.33, r: w * 0.3 };
-    return { mask, anchor, face, bgFraction };
+    const faceBox = face ? { cx: face.cx * s, top: face.y0 * s, width: (face.x1 - face.x0 + 1) * s } : null;
+    return { mask, anchor, face, faceBox, bgFraction };
   }
 
   return { detect, isSkin, largestBlob };
