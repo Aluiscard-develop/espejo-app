@@ -1,5 +1,6 @@
 // Estado compartido entre pestañas (D-18): la foto actual, la cámara, el perfil calculado y un bus de
-// eventos ("photo", "tab", "profile"). Todo en memoria: cerrar la pestaña lo borra.
+// eventos ("photo", "tab", "profile"). Todo en memoria salvo que la persona active «Recordar» (D-20):
+// entonces se guardan solo las respuestas de los tests en localStorage, nunca la foto.
 (function () {
   "use strict";
   const { mask: maskLib } = window.FA;
@@ -17,6 +18,24 @@
     $,
   };
   window.FA.app = app;
+
+  // ---- «Recordar» (D-20): opcional, apagado por defecto, solo respuestas ----
+  const KEY = "espejo:v1";
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(KEY) || "null"); } catch { saved = null; }
+  app.memory = {
+    enabled: !!(saved && saved.enabled),
+    load(part) { return (this.enabled && saved && saved[part]) || null; },
+    save(part, value) {
+      if (!this.enabled) return;
+      saved = { ...(saved || {}), enabled: true, [part]: value };
+      try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch { /* sin almacenamiento: se sigue en memoria */ }
+    },
+    forget() {
+      saved = null;
+      try { localStorage.removeItem(KEY); } catch { /* nada que borrar */ }
+    },
+  };
 
   app.setStatus = function (msg, isError = false) {
     $("status").textContent = msg;
@@ -260,6 +279,24 @@
     b.addEventListener("click", () => selectTab(tab));
   }
   app.el("p", "Las recomendaciones de color, cara y estilo son las reglas que usan asesores de imagen, barberos y ópticas: orientativas, no ciencia exacta. Las de piel citan sus estudios. Nada de esto es consejo médico.", home, "hint");
+
+  $("remember").checked = app.memory.enabled;
+  $("remember").addEventListener("change", (e) => {
+    app.memory.enabled = e.target.checked;
+    if (!e.target.checked) { app.memory.forget(); app.setStatus("Ya no se recuerda nada."); return; }
+    app.emit("remember");
+    app.setStatus("Tus respuestas se recordarán en este navegador.");
+  });
+  $("forget").addEventListener("click", () => {
+    app.memory.forget();
+    app.memory.enabled = $("remember").checked = false;
+    app.setStatus("Borrado. La próxima vez empezarás de cero.");
+  });
+
+  // PWA: solo en modo servidor (los service workers no existen en file://).
+  if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+    navigator.serviceWorker.register("sw.js").catch(() => { /* sin modo offline; la app funciona igual */ });
+  }
 
   selectTab("foto");
 })();

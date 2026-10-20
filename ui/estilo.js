@@ -3,12 +3,15 @@
   "use strict";
   const { estilo, dibujos, color, app } = window.FA;
   const { $, el, pic } = app;
-  const answers = {};
+  const answers = app.memory.load("estilo") || {};
   const rep = $("report-estilo");
 
   app.quiz($("estilo-quiz"), estilo.QUIZ, answers, render);
 
+  app.on("remember", () => app.memory.save("estilo", answers));
+
   function render() {
+    app.memory.save("estilo", answers);
     rep.replaceChildren();
     const prof = app.profile.color;
     const seasonId = prof ? prof.season.id : "otono-suave";

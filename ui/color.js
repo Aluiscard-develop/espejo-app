@@ -8,7 +8,10 @@
   const taps = $("taps");
   const LABELS = { wb: "Blanco", skin: "Piel", hair: "Pelo", eyes: "Iris" };
   const PROMPTS = { wb: "Toca algo blanco o gris claro de la foto (pared, papel, camiseta blanca).", skin: "Toca tu mejilla, donde no haya sombra ni brillo.", hair: "Toca tu pelo, en una zona sin reflejos.", eyes: "Toca el color de tu iris (amplía la foto si hace falta)." };
-  const st = { samples: {}, points: {}, auto: false, answers: {}, forced: null, pick: null, frame: 0 };
+  const mem = app.memory.load("color") || {};
+  const st = { samples: {}, points: {}, auto: false, answers: mem.answers || {}, forced: mem.forced || null, pick: null, frame: 0 };
+  const remember = () => app.memory.save("color", { answers: st.answers, forced: st.forced });
+  app.on("remember", remember);
 
   // ---- muestreo ----
   function radius(kind) {
@@ -233,6 +236,7 @@
   }
 
   function update() {
+    remember();
     if (st.frame) return;
     st.frame = requestAnimationFrame(() => {
       st.frame = 0;

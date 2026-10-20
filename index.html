@@ -4,11 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- Sin red: ni fetch, ni imágenes remotas, ni fuentes externas. La foto no puede salir de aquí. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; connect-src 'none'; font-src 'self'; media-src 'self' blob: mediastream:; object-src 'none'; worker-src 'self'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' blob: data:; connect-src 'none'; font-src 'self'; media-src 'self' blob: mediastream:; object-src 'none'; worker-src 'self'; manifest-src 'self'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="robots" content="noai, noimageai">
 <title>Espejo</title>
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#121214">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -84,12 +86,18 @@
         </div>
         <button id="clear" type="button" disabled>Quitar foto</button>
       </fieldset>
+      <fieldset>
+        <legend>Recordar</legend>
+        <label class="check"><input id="remember" type="checkbox"> <span>Recordar mis respuestas en este navegador</span></label>
+        <p class="hint">Opcional y apagado por defecto. Guarda solo las respuestas de los tests (nunca la foto ni medidas de tu cara), solo en este navegador.</p>
+        <button id="forget" type="button">Borrar lo recordado</button>
+      </fieldset>
       <details>
         <summary>Privacidad: qué se garantiza y qué no</summary>
         <ul>
           <li><b>Sí:</b> la foto se procesa solo en este navegador. La página bloquea cualquier conexión de red (CSP <code>connect-src 'none'</code>).</li>
           <li><b>Sí:</b> la cámara solo se usa mientras la tienes abierta y la imagen no sale del navegador.</li>
-          <li><b>Sí:</b> no se guarda nada; al cerrar la pestaña desaparece.</li>
+          <li><b>Sí:</b> no se guarda nada; al cerrar la pestaña desaparece. Si activas «Recordar», se guardan solo tus respuestas de los tests en este navegador.</li>
           <li><b>No:</b> si publicas una imagen, nadie puede impedir técnicamente que se use para entrenar una IA.</li>
         </ul>
       </details>
@@ -113,7 +121,8 @@
     <div class="panel" data-panel="cara" hidden>
       <fieldset id="advisor-box" disabled>
         <legend>Marca tu cara</legend>
-        <p class="hint">Arrastra cada punto a su sitio (o Tab + flechas). Mejor con foto <b>de frente y sin gafas</b>.</p>
+        <button id="auto-points" type="button" class="primary">✨ Colocar puntos automáticamente</button>
+        <p class="hint">Usa un modelo de reconocimiento de cara que funciona dentro del navegador (la foto no sale de aquí). La primera vez tarda unos segundos. Después, corrige a mano lo que haga falta: arrastra cada punto (o Tab + flechas). Mejor con foto <b>de frente y sin gafas</b>.</p>
         <ol class="points" id="point-list"></ol>
         <button id="advisor-reset" type="button">Recolocar puntos</button>
       </fieldset>
@@ -165,8 +174,9 @@
     <div class="panel" data-panel="resumen" hidden>
       <fieldset>
         <legend>Tu ficha</legend>
-        <p class="hint">Junta todo en una página. Para guardarla, imprímela como PDF (no se guarda nada en la app).</p>
-        <button id="print" type="button" class="primary">Imprimir / guardar PDF</button>
+        <p class="hint">Junta todo en una página. Para conservarla, descárgala como imagen o imprímela como PDF (la app no guarda nada).</p>
+        <button id="save-ficha" type="button" class="primary">Descargar ficha (PNG)</button>
+        <button id="print" type="button">Imprimir / guardar PDF</button>
       </fieldset>
     </div>
 
@@ -232,6 +242,7 @@
 <script src="core/dibujos.js"></script>
 <script src="core/estilo.js"></script>
 <script src="core/piel.js"></script>
+<script src="core/ficha.js"></script>
 <script src="ui/app.js"></script>
 <script src="main.js"></script>
 <script src="ui/cara.js"></script>

@@ -3,14 +3,17 @@
   "use strict";
   const { piel, app } = window.FA;
   const { $, el } = app;
-  const answers = {}, concerns = new Set();
+  const mem = app.memory.load("piel") || {};
+  const answers = mem.answers || {}, concerns = new Set(mem.concerns || []);
+  const remember = () => app.memory.save("piel", { answers, concerns: [...concerns] });
+  app.on("remember", remember);
   const rep = $("report-piel");
 
   app.quiz($("piel-quiz"), piel.QUIZ, answers, render);
   for (const c of piel.CONCERNS) {
     const b = el("button", c.label, $("piel-concerns"));
     b.type = "button";
-    b.setAttribute("aria-pressed", "false");
+    b.setAttribute("aria-pressed", String(concerns.has(c.id)));
     b.addEventListener("click", () => {
       if (concerns.has(c.id)) concerns.delete(c.id); else concerns.add(c.id);
       b.setAttribute("aria-pressed", String(concerns.has(c.id)));
@@ -52,6 +55,7 @@
   }
 
   function render() {
+    remember();
     rep.replaceChildren();
     const r = piel.routine(answers, [...concerns]);
     app.profile.piel = r;
