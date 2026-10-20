@@ -1,0 +1,16 @@
+{
+  "name": "Espejo — tu asesor de imagen",
+  "short_name": "Espejo",
+  "description": "Colores, cortes, barba, gafas, estilo y piel. Todo en tu dispositivo, sin red.",
+  "lang": "es",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#121214",
+  "theme_color": "#121214",
+  "icons": [
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "assets/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
