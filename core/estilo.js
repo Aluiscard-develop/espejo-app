@@ -30,14 +30,14 @@
       avoid: ["Tallas grandes", "Corbatas con estampado de dibujos", "Zapatos de punta cuadrada"],
       fit: { dia: { formal: 3, creativo: 1 }, personalidad: { discreto: 2, equilibrado: 1 }, objetivo: { elegante: 3 } },
       outfits: [
-        { label: "Reunión importante", top: "light", outer: "dark", outerType: "blazer", bottom: "dark", shoes: "deep", shoeType: "dress", tie: "accent" },
-        { label: "Cena", top: "accent2", outer: "mid", outerType: "blazer", bottom: "dark", shoes: "deep", shoeType: "dress" }] },
+        { label: "Reunión importante", top: "light", outer: "dark", outerType: "blazer", bottom: "dark", shoes: "shoe", shoeType: "dress", tie: "accent" },
+        { label: "Cena", top: "accent2", outer: "mid", outerType: "blazer", bottom: "dark", shoes: "shoe", shoeType: "dress" }] },
     smart: { name: "Smart casual", desc: "Americana desestructurada o sobrecamisa con chinos y camiseta o polo. Arreglado sin corbata: la apuesta más versátil.",
       keys: ["Americana sin forro o sobrecamisa", "Chinos", "Polo de punto o camiseta lisa de calidad", "Mocasines o zapatillas de piel blancas", "Jersey de cuello redondo"],
       avoid: ["Camisetas con logos grandes", "Zapatillas de deporte gastadas", "Bermudas en contextos de trabajo"],
       fit: { dia: { creativo: 3, formal: 1, casa: 1 }, personalidad: { equilibrado: 2, discreto: 1 }, objetivo: { elegante: 2, moderno: 1, comodo: 1 } },
       outfits: [
-        { label: "Oficina sin corbata", top: "light", outer: "mid", outerType: "blazer", bottom: "mid", shoes: "deep", shoeType: "dress" },
+        { label: "Oficina sin corbata", top: "light", outer: "mid", outerType: "blazer", bottom: "mid", shoes: "shoe", shoeType: "dress" },
         { label: "Cita", top: "accent", outer: "dark", outerType: "overshirt", bottom: "dark", shoes: "light", shoeType: "sneaker" }] },
     minimal: { name: "Minimalista", desc: "Pocas prendas lisas, cortes limpios y colores neutros de tu paleta. Se ve caro con poco dinero.",
       keys: ["Camisetas lisas gruesas", "Pantalón recto oscuro", "Zapatillas blancas limpias", "Chaqueta harrington o bomber lisa", "Jersey fino de punto"],
@@ -58,15 +58,15 @@
       avoid: ["Vaqueros rotos", "Ropa demasiado ajustada"],
       fit: { objetivo: { varonil: 3, comodo: 1 }, dia: { activo: 3, creativo: 1 }, personalidad: { equilibrado: 1 } },
       outfits: [
-        { label: "Diario", top: "accent", outer: "deep", outerType: "overshirt", bottom: "denim", bottomType: "jeans", shoes: "deep", shoeType: "boot" },
-        { label: "Frío", top: "light", outer: "dark", outerType: "jacket", bottom: "denim", bottomType: "jeans", shoes: "deep", shoeType: "boot" }] },
+        { label: "Diario", top: "accent", outer: "deep", outerType: "overshirt", bottom: "denim", bottomType: "jeans", shoes: "shoe", shoeType: "boot" },
+        { label: "Frío", top: "light", outer: "dark", outerType: "jacket", bottom: "denim", bottomType: "jeans", shoes: "shoe", shoeType: "boot" }] },
     preppy: { name: "Preppy / clásico informal", desc: "Polos, camisas oxford, jerséis de punto y chinos. Pulcro, cercano y elegante a la vez.",
       keys: ["Camisa oxford", "Polo de piqué", "Jersey de pico o cuello redondo", "Chinos claros", "Náuticos o mocasines"],
       avoid: ["Logos grandes", "Tallas holgadas"],
       fit: { objetivo: { elegante: 2, comodo: 1 }, personalidad: { equilibrado: 2, discreto: 1 }, dia: { creativo: 2, formal: 1 } },
       outfits: [
-        { label: "Fin de semana", top: "accent", bottom: "stone", shoes: "deep", shoeType: "dress" },
-        { label: "Entretiempo", top: "accent2", outer: "dark", outerType: "overshirt", bottom: "stone", shoes: "deep", shoeType: "dress" }] },
+        { label: "Fin de semana", top: "accent", bottom: "stone", shoes: "shoe", shoeType: "dress" },
+        { label: "Entretiempo", top: "accent2", outer: "dark", outerType: "overshirt", bottom: "stone", shoes: "shoe", shoeType: "dress" }] },
     athleisure: { name: "Deportivo cuidado", desc: "Prendas técnicas y de punto, joggers entallados y zapatillas limpias. Cómodo pero intencional.",
       keys: ["Jogger entallado de punto", "Sudadera lisa sin capucha", "Camiseta técnica lisa", "Zapatillas de running limpias", "Chaqueta ligera"],
       avoid: ["Ropa del gimnasio sudada o vieja", "Chándal completo de brillo"],
@@ -88,7 +88,7 @@
   };
 
   /**
-   * Colores de la paleta asignados a "roles": light/stone/dark/mid (neutros), deep/soft (mejores extremos),
+   * Colores de la paleta asignados a "roles": light/stone/dark/shoe/mid (neutros), deep/soft (mejores extremos),
    * accent/accent2 (mejores con más color), denim (azul de la paleta o vaquero estándar).
    */
   function roles(seasonId) {
@@ -101,7 +101,7 @@
     const accents = (mids.length >= 2 ? mids : [...s.best]).sort((x, y) => color.chroma(lab(y)) - color.chroma(lab(x)));
     const blues = s.best.filter((h) => { const hu = color.hue(lab(h)); return hu > 230 && hu < 300 && lab(h)[0] < 60; });
     return {
-      light: n[n.length - 1], stone: n[n.length - 2], dark: n[0], mid: n[Math.floor(n.length / 2)],
+      light: n[n.length - 1], stone: n[n.length - 2], dark: n[0], shoe: n[1], mid: n[Math.floor(n.length / 2)],
       deep: b[0], soft: b[b.length - 1], accent: accents[0], accent2: accents[1] === accents[0] ? accents[2] : accents[1],
       denim: blues[0] || "#2E4A6B",
     };
