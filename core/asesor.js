@@ -29,6 +29,24 @@
     return out;
   }
 
+  // Índices de la malla de MediaPipe Face Landmarker (478 puntos) para cada punto del asesor.
+  // top/chin: centro del óvalo arriba y abajo; sienes: lateral alto de la frente; pómulos: lo más ancho; mandíbula: ángulo.
+  const MESH = { top: 10, chin: 152, fore: [54, 284], cheek: [234, 454], jaw: [172, 397] };
+
+  /**
+   * Puntos del asesor a partir de landmarks normalizados (0..1) de MediaPipe.
+   * La malla acaba algo por debajo del nacimiento del pelo: `top` se sube un 8 % del largo de la cara.
+   * L/R se asignan por posición en la foto (L = izquierda de la imagen), como el resto del asesor.
+   */
+  function fromLandmarks(lm, w, h) {
+    const P = (i) => [lm[i].x * w, lm[i].y * h];
+    const pair = ([a, b]) => { const pa = P(a), pb = P(b); return pa[0] <= pb[0] ? [pa, pb] : [pb, pa]; };
+    const chin = P(MESH.chin), top0 = P(MESH.top);
+    const top = [top0[0] + (top0[0] - chin[0]) * 0.08, top0[1] + (top0[1] - chin[1]) * 0.08];
+    const [foreL, foreR] = pair(MESH.fore), [cheekL, cheekR] = pair(MESH.cheek), [jawL, jawR] = pair(MESH.jaw);
+    return { top, chin, foreL, foreR, cheekL, cheekR, jawL, jawR };
+  }
+
   const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
 
   // Ángulo en `v` entre los segmentos v→a y v→b, en grados.
@@ -304,5 +322,5 @@
     };
   }
 
-  return { POINTS, SHAPES, RECS, defaultPoints, measure, classify, advise };
+  return { POINTS, SHAPES, RECS, MESH, defaultPoints, fromLandmarks, measure, classify, advise };
 });

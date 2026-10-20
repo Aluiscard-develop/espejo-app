@@ -189,8 +189,61 @@
     advisor.points[g.dataset.id] = [clamp01(p[0] + dir[0] * step), clamp01(p[1] + dir[1] * step)];
     requestAdvice();
   });
+  // ---- puntos automáticos con MediaPipe (D-19): se carga solo al pulsar, sin fetch (todo va en scripts locales) ----
+  const mp = { landmarker: null, loading: null };
+  const loadScript = (src) => new Promise((ok, fail) => {
+    const s = document.createElement("script");
+    s.src = src;
+    s.onload = ok;
+    s.onerror = () => fail(new Error("no se pudo cargar " + src));
+    document.head.appendChild(s);
+  });
+  const fromB64 = (b64) => { const bin = atob(b64), out = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i); return out; };
+
+  function landmarker() {
+    mp.loading = mp.loading || (async () => {
+      for (const f of ["wasm.b64.js", "face_landmarker.b64.js", "vision_wasm_internal.js", "vision_bundle.js"]) await loadScript("vendor/mediapipe/" + f);
+      self.Module = { wasmBinary: fromB64(self.MP_WASM_B64) }; // el cargador usa estos bytes en vez de pedir el .wasm por red
+      const model = fromB64(self.MP_MODEL_B64);
+      delete self.MP_WASM_B64; delete self.MP_MODEL_B64;
+      // wasmLoaderPath vacío: el cargador ya está en la página y no se vuelve a pedir
+      mp.landmarker = await self.MPVision.FaceLandmarker.createFromOptions(
+        { wasmLoaderPath: "", wasmBinaryPath: "vision_wasm_internal.wasm" },
+        { baseOptions: { modelAssetBuffer: model, delegate: "CPU" }, runningMode: "IMAGE", numFaces: 1 });
+      return mp.landmarker;
+    })();
+    mp.loading.catch(() => { mp.loading = null; });
+    return mp.loading;
+  }
+
+  $("auto-points").addEventListener("click", async () => {
+    if (!app.source) return;
+    const btn = $("auto-points");
+    btn.disabled = true;
+    app.setStatus(mp.landmarker ? "Buscando tu cara…" : "Cargando el modelo de cara (unos segundos la primera vez)…");
+    try {
+      const lmk = await landmarker();
+      const res = lmk.detect($("photo"));
+      const face = res.faceLandmarks && res.faceLandmarks[0];
+      if (!face) { app.setStatus("No encontré una cara. Prueba con una foto de frente y bien iluminada, o coloca los puntos a mano.", true); return; }
+      const { width: w, height: h } = app.source;
+      advisor.points = {};
+      for (const [id, [x, y]] of Object.entries(asesor.fromLandmarks(face, w, h))) advisor.points[id] = [clamp01(x / w), clamp01(y / h)];
+      app.setStatus("Puntos colocados. Revísalos y corrige si alguno no está en su sitio.");
+      requestAdvice();
+    } catch (err) {
+      app.setStatus("No se pudo usar el modelo de cara: " + err.message, true);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
   $("advisor-reset").addEventListener("click", () => { if (app.source) { placeDefaults(); requestAdvice(); } });
-  for (const id of ["hair", "beard", "receding"]) $(id).addEventListener("change", requestAdvice);
+  const memCara = app.memory.load("cara");
+  if (memCara) { $("hair").value = memCara.hair; $("beard").value = memCara.beard; $("receding").checked = memCara.receding; }
+  const rememberCara = () => app.memory.save("cara", { hair: $("hair").value, beard: $("beard").value, receding: $("receding").checked });
+  app.on("remember", rememberCara);
+  for (const id of ["hair", "beard", "receding"]) $(id).addEventListener("change", () => { rememberCara(); requestAdvice(); });
   window.addEventListener("resize", () => { if (app.tab === "cara") requestAdvice(); });
 
   app.on("photo", () => { advisor.points = null; app.profile.face = null; show(); });
