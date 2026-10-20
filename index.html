@@ -17,7 +17,6 @@
 <header>
   <h1>Espejo <small>tu asesor de imagen</small></h1>
   <p class="badge" title="Content-Security-Policy: connect-src 'none'">100 % en tu dispositivo · sin red · sin guardar nada</p>
-  <p class="badge mode" id="mode" role="status"></p>
 </header>
 
 <nav class="tabs" role="tablist" aria-label="Secciones">
@@ -28,27 +27,16 @@
   <button role="tab" id="tab-probador" data-tab="probador" aria-selected="false"><span aria-hidden="true">🪞</span> Probador</button>
   <button role="tab" id="tab-piel" data-tab="piel" aria-selected="false"><span aria-hidden="true">🧴</span> Piel</button>
   <button role="tab" id="tab-resumen" data-tab="resumen" aria-selected="false"><span aria-hidden="true">⭐</span> Resumen</button>
-  <button role="tab" id="tab-anime" data-tab="anime" aria-selected="false"><span aria-hidden="true">✒️</span> Filtro anime</button>
 </nav>
 
 <main>
   <section class="stage" id="stage" aria-label="Imagen">
     <div class="frame" id="frame" hidden>
       <canvas id="photo" aria-label="Tu foto"></canvas>
-      <canvas id="out" hidden></canvas>
-      <div class="curtain" id="curtain" hidden>
-        <canvas id="orig" aria-hidden="true"></canvas>
-        <div class="divider" aria-hidden="true"><span class="handle"></span></div>
-        <span class="tag tag-before" aria-hidden="true">Antes</span>
-        <span class="tag tag-after" aria-hidden="true">Después</span>
-        <input id="split" type="range" min="0" max="100" step="1" value="50" aria-label="Posición de la cortina antes/después" aria-valuetext="50 % original">
-      </div>
-      <canvas id="paint" hidden aria-label="Lienzo del pincel: las zonas azuladas son fondo"></canvas>
       <canvas id="try-canvas" hidden aria-label="Tu foto con el color de pelo y la barba simulados"></canvas>
       <div class="glasses-layer" id="glasses-layer" hidden></div>
       <svg id="marks" hidden aria-label="Puntos de medida de la cara"></svg>
       <svg id="taps" hidden aria-label="Toca la foto para medir un color"></svg>
-      <div class="brush-cursor" id="cursor" hidden></div>
     </div>
     <div class="camera" id="camera" hidden>
       <video id="cam" playsinline muted aria-label="Vista de la cámara"></video>
@@ -195,44 +183,6 @@
       </fieldset>
     </div>
 
-    <!-- Filtro anime -->
-    <div class="panel" data-panel="anime" hidden>
-      <fieldset>
-        <legend>Estilo</legend>
-        <div class="styles" id="styles" role="radiogroup"></div>
-      </fieldset>
-      <fieldset id="controls" disabled>
-        <legend>Ajustes</legend>
-        <label class="check"><input id="hq" type="checkbox"> <span>Alta calidad <small>(hasta 2400 px, más lento)</small></span> <output id="o-res"></output></label>
-        <label><span>Grosor de línea <output id="o-thick"></output></span><input id="thick" type="range" min="-1" max="3" step="1" value="0"></label>
-        <label><span>Detalle <output id="o-tau"></output></span><input id="tau" type="range" min="0.94" max="0.995" step="0.005" value="0.975"></label>
-        <label><span>Sombras <output id="o-dark"></output></span><input id="dark" type="range" min="-0.2" max="0.3" step="0.02" value="0"></label>
-        <label><span>Recorte de fondo <output id="o-tol"></output></span><input id="tol" type="range" min="0" max="40" step="2" value="18"></label>
-        <div class="brush" role="group" aria-labelledby="brush-title">
-          <div class="row">
-            <span class="group-title" id="brush-title">Retocar recorte</span>
-            <button id="brush" type="button" aria-pressed="false">Pincel</button>
-          </div>
-          <div id="brush-tools" hidden>
-            <div class="row" role="radiogroup" aria-label="Qué pintas">
-              <button type="button" role="radio" id="tool-person" aria-checked="true">Es persona</button>
-              <button type="button" role="radio" id="tool-bg" aria-checked="false">Es fondo</button>
-            </div>
-            <label><span>Tamaño del pincel <output id="o-size"></output></span><input id="size" type="range" min="8" max="200" step="4" value="60"></label>
-            <div class="row">
-              <button id="undo" type="button" disabled>Deshacer</button>
-              <button id="wipe" type="button" disabled>Borrar retoques</button>
-            </div>
-            <p class="hint">Las zonas azuladas son fondo. Pinta «Es persona» donde el recorte se comió algo tuyo y «Es fondo» donde sobra. Ctrl+Z deshace; [ y ] cambian el tamaño.</p>
-          </div>
-        </div>
-        <div class="row">
-          <button id="compare" type="button" aria-pressed="false">Antes / después</button>
-          <button id="reset" type="button">Restablecer</button>
-        </div>
-        <button id="save" type="button" class="primary">Descargar PNG</button>
-      </fieldset>
-    </div>
   </aside>
 
   <section class="report" id="report-foto" data-report="foto" aria-label="Cómo funciona"></section>
@@ -247,11 +197,6 @@
 <script src="core/ops.js"></script>
 <script src="core/mask.js"></script>
 <script src="core/png.js"></script>
-<script src="core/styles.js"></script>
-<script src="core/backgrounds.js"></script>
-<script src="core/render.js"></script>
-<script src="core/brush.js"></script>
-<script src="core/pipeline.js"></script>
 <script src="core/asesor.js"></script>
 <script src="core/color.js"></script>
 <script src="core/dibujos.js"></script>
@@ -261,7 +206,6 @@
 <script src="core/pelo.js"></script>
 <script src="ui/app.js"></script>
 <script src="ui/mp.js"></script>
-<script src="main.js"></script>
 <script src="ui/cara.js"></script>
 <script src="ui/color.js"></script>
 <script src="ui/estilo.js"></script>
