@@ -42,6 +42,7 @@
     const prods = el("div", "", card, "products");
     el("b", "Ejemplos: ", prods);
     prods.append(s.products.join(" · "));
+    if (s.marketNote) el("p", "📍 " + s.marketNote, card, "market-note");
     const src = el("details", "", card, "sources");
     el("summary", `Estudios (${s.sources.length})`, src);
     for (const x of s.sources) {
@@ -61,6 +62,7 @@
     app.profile.piel = r;
     app.emit("profile", "piel");
     if (!Object.values(answers).some(Boolean) && !concerns.size) el("p", "Esta es la rutina básica que le sirve a casi todo el mundo. Responde a la izquierda para ajustarla.", rep, "empty");
+    if (r.countryNote) el("p", "📍 " + r.countryNote, rep, "hint");
     const cols = el("div", "", rep, "routine");
     const col = (title, steps) => {
       const c = el("section", "", cols, "routine-col");

@@ -290,3 +290,4 @@ details { font-size: 13px; color: var(--muted); }
 .color-hero { justify-items: stretch !important; }
 .gauge-labels { gap: 6px; }
 @media (max-width: 600px) { .jewel { grid-template-columns: 1fr; } }
+.market-note { margin: 6px 0 0 !important; font-size: 13px; color: var(--accent); }

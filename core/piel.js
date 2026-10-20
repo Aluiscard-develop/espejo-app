@@ -38,7 +38,11 @@
       when: "Previene desde el primer día; el efecto se ve en años.",
       how: "Cada mañana, dos dedos de producto en cara y cuello; repetir si estás al sol más de 2 h.",
       caution: "Si te salen granos, busca uno en fluido o gel “oil free” o “no comedogénico”.",
-      products: ["La Roche-Posay Anthelios UVMune 400 (fluido)", "ISDIN Fotoprotector Fusion Water", "Eucerin Sun Oil Control (piel grasa)", "Neutrogena Ultra Sheer"] },
+      products: ["La Roche-Posay Anthelios UVMune 400 (fluido)", "ISDIN Fotoprotector Fusion Water", "Eucerin Sun Oil Control (piel grasa)", "Neutrogena Ultra Sheer"],
+      market: {
+        us: { products: ["La Roche-Posay Anthelios Melt-in Milk SPF 60", "EltaMD UV Clear SPF 46", "Neutrogena Ultra Sheer Dry-Touch SPF 55", "CeraVe AM Facial Moisturizing Lotion SPF 30"],
+          note: "En EE. UU. la FDA no ha aprobado los filtros europeos más nuevos (como Mexoryl 400): las versiones «UVMune 400» no se venden oficialmente allí; usa las estadounidenses." },
+        cr: { note: "Costa Rica está en el trópico y el índice UV es alto casi todo el año: reaplica cada 2 h si estás al aire libre, también con nubes." } } },
     limpiador: { name: "Limpiador suave", level: "B", sources: ["delphi"],
       what: "Quita grasa, sudor y protector sin romper la barrera de la piel. No hace milagros: solo prepara.",
       when: "Inmediato (piel más limpia).", how: "Noche siempre; mañana opcional si tienes piel seca (basta agua).",
@@ -54,13 +58,17 @@
       when: "8–12 semanas. Las primeras 2–4 puede haber más granos (“purga”): es normal.",
       how: "Noche, una capa fina sobre la piel seca, 3 noches por semana y subir a diario si no irrita.",
       caution: "Irrita al principio (rojez, descamación): usa hidratante y protector. No en embarazo.",
-      products: ["Differin Gel (adapaleno 0,1 %)", "La Roche-Posay Effaclar Adapalene Gel 0,1 %"] },
+      products: ["Differin Gel (adapaleno 0,1 %)", "La Roche-Posay Effaclar Adapalene Gel 0,1 %"],
+      market: {
+        us: { note: "En EE. UU. se vende sin receta desde 2016 (Differin Gel 0,1 %)." },
+        cr: { note: "En varios países de Latinoamérica se vende con receta: pregunta en tu farmacia." } } },
     tretinoina: { name: "Tretinoína 0,025–0,05 % (receta)", level: "A", sources: ["tretinoina2022"],
       what: "El antiedad con más ensayos: mejora arrugas finas, manchas y tono apagado; también trata el acné.",
       when: "3–6 meses para notar arrugas y manchas.",
       how: "Noche, del tamaño de un guisante para toda la cara, empezando 2–3 noches por semana.",
       caution: "Necesita receta en muchos países: pídesela a un dermatólogo. Irrita al empezar. No en embarazo. No la mezcles el mismo día con ácidos exfoliantes al principio.",
-      products: ["Retin-A / genéricos de tretinoína (con receta)"] },
+      products: ["Retin-A / genéricos de tretinoína (con receta)"],
+      market: { us: { note: "Con receta. Las telemedicinas de dermatología la recetan en línea." }, cr: { note: "Pídela al dermatólogo o a tu médico." } } },
     retinol: { name: "Retinol 0,3–1 %", level: "A", sources: ["wang2024"],
       what: "Versión de venta libre y más suave de la tretinoína: mejora arrugas finas y textura, más despacio.",
       when: "3–6 meses.", how: "Noche, 2–3 por semana al principio, después de limpiar y antes del hidratante.",
@@ -101,7 +109,14 @@
     { name: "Mascarillas de carbón, “detox” y exfoliantes de grano", why: "No hay ensayos que muestren beneficio; los gránulos pueden irritar." },
   ];
 
+  const COUNTRY_NOTES = {
+    cr: "Comprueba en tu farmacia (Fischel, La Bomba, Sucre…). Si no tienen ese producto, vale cualquier otro con el mismo ingrediente y concentración: eso es lo que importa.",
+    us: "Todos los ejemplos son de venta en EE. UU. salvo los marcados con receta.",
+  };
+
   const QUIZ = [
+    { id: "pais", q: "¿Dónde compras?", options: [
+      { v: "cr", label: "Costa Rica" }, { v: "us", label: "EE. UU." }] },
     { id: "tipo", q: "A media tarde, sin ponerte nada, tu cara está…", options: [
       { v: "grasa", label: "Brillante por todas partes" }, { v: "mixta", label: "Brillante en frente y nariz, normal en mejillas" },
       { v: "normal", label: "Bien, ni brillo ni tirantez" }, { v: "seca", label: "Tirante o con pielecitas" }] },
@@ -119,10 +134,11 @@
     { id: "afeitado", label: "Irritación o pelos enquistados al afeitar" }, { id: "apagada", label: "Piel apagada o cansada" },
   ];
 
-  function step(id, tipo) {
-    const ing = INGREDIENTS[id];
-    const products = Array.isArray(ing.products) ? ing.products : ing.products[tipo === "grasa" || tipo === "mixta" ? "grasa" : tipo === "seca" ? "seca" : "default"];
-    return { id, ...ing, products, sources: ing.sources.map((s) => ({ id: s, ...SOURCES[s] })) };
+  function step(id, tipo, pais) {
+    const ing = INGREDIENTS[id], m = (ing.market && ing.market[pais]) || {};
+    const base = Array.isArray(ing.products) ? ing.products : ing.products[tipo === "grasa" || tipo === "mixta" ? "grasa" : tipo === "seca" ? "seca" : "default"];
+    const { market, ...rest } = ing;
+    return { id, ...rest, products: m.products || base, marketNote: m.note || null, sources: ing.sources.map((s) => ({ id: s, ...SOURCES[s] })) };
   }
 
   /**
@@ -132,7 +148,7 @@
    */
   function routine(a = {}, concerns = []) {
     const has = (c) => concerns.includes(c);
-    const tipo = a.tipo || "normal", sensitive = a.sensible === "si", rx = a.receta === "si";
+    const tipo = a.tipo || "normal", sensitive = a.sensible === "si", rx = a.receta === "si", pais = a.pais || null;
     const am = ["limpiador"], pm = ["limpiador"], notes = [];
     // un solo retinoide por la noche: tretinoína > adapaleno (si hay acné) > retinol
     const aging = has("arrugas") || a.edad === "35-45" || a.edad === "45+";
@@ -156,11 +172,12 @@
     if (has("acne")) notes.push("Si tienes granos grandes, dolorosos o que dejan cicatriz, ve al dermatólogo: hay tratamientos orales que funcionan mucho mejor.");
     notes.push("Introduce un producto nuevo cada 2 semanas: si algo te irrita, sabrás cuál es. Constancia > cantidad.");
     return {
-      am: [...new Set(am)].map((id) => step(id, tipo)),
-      pm: [...new Set(pm)].map((id) => step(id, tipo)),
+      am: [...new Set(am)].map((id) => step(id, tipo, pais)),
+      pm: [...new Set(pm)].map((id) => step(id, tipo, pais)),
+      countryNote: pais ? COUNTRY_NOTES[pais] : null,
       notes, skip: SKIP.map((s) => ({ ...s, source: s.source ? SOURCES[s.source] : null })),
     };
   }
 
-  return { LEVELS, SOURCES, INGREDIENTS, QUIZ, CONCERNS, SKIP, routine };
+  return { LEVELS, SOURCES, INGREDIENTS, QUIZ, CONCERNS, SKIP, COUNTRY_NOTES, routine };
 });
