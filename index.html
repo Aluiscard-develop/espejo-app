@@ -4,24 +4,36 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- Sin red: ni fetch, ni imágenes remotas, ni fuentes externas. La foto no puede salir de aquí. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; connect-src 'none'; font-src 'self'; media-src 'none'; object-src 'none'; worker-src 'self'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; connect-src 'none'; font-src 'self'; media-src 'self' blob: mediastream:; object-src 'none'; worker-src 'self'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="robots" content="noai, noimageai">
-<title>FiltroAnime</title>
+<title>Espejo</title>
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <header>
-  <h1>FiltroAnime</h1>
-  <p class="badge" title="Content-Security-Policy: connect-src 'none'">Procesado 100 % local · sin red · sin guardar nada</p>
+  <h1>Espejo <small>tu asesor de imagen</small></h1>
+  <p class="badge" title="Content-Security-Policy: connect-src 'none'">100 % en tu dispositivo · sin red · sin guardar nada</p>
   <p class="badge mode" id="mode" role="status"></p>
 </header>
+
+<nav class="tabs" role="tablist" aria-label="Secciones">
+  <button role="tab" id="tab-foto" data-tab="foto" aria-selected="true"><span aria-hidden="true">📷</span> Mi foto</button>
+  <button role="tab" id="tab-color" data-tab="color" aria-selected="false"><span aria-hidden="true">🎨</span> Color</button>
+  <button role="tab" id="tab-cara" data-tab="cara" aria-selected="false"><span aria-hidden="true">💈</span> Cara</button>
+  <button role="tab" id="tab-estilo" data-tab="estilo" aria-selected="false"><span aria-hidden="true">👔</span> Estilo</button>
+  <button role="tab" id="tab-probador" data-tab="probador" aria-selected="false"><span aria-hidden="true">🪞</span> Probador</button>
+  <button role="tab" id="tab-piel" data-tab="piel" aria-selected="false"><span aria-hidden="true">🧴</span> Piel</button>
+  <button role="tab" id="tab-resumen" data-tab="resumen" aria-selected="false"><span aria-hidden="true">⭐</span> Resumen</button>
+  <button role="tab" id="tab-anime" data-tab="anime" aria-selected="false"><span aria-hidden="true">✒️</span> Filtro anime</button>
+</nav>
 
 <main>
   <section class="stage" id="stage" aria-label="Imagen">
     <div class="frame" id="frame" hidden>
-      <canvas id="out"></canvas>
+      <canvas id="photo" aria-label="Tu foto"></canvas>
+      <canvas id="out" hidden></canvas>
       <div class="curtain" id="curtain" hidden>
         <canvas id="orig" aria-hidden="true"></canvas>
         <div class="divider" aria-hidden="true"><span class="handle"></span></div>
@@ -30,66 +42,181 @@
         <input id="split" type="range" min="0" max="100" step="1" value="50" aria-label="Posición de la cortina antes/después" aria-valuetext="50 % original">
       </div>
       <canvas id="paint" hidden aria-label="Lienzo del pincel: las zonas azuladas son fondo"></canvas>
+      <div class="glasses-layer" id="glasses-layer" hidden></div>
+      <svg id="marks" hidden aria-label="Puntos de medida de la cara"></svg>
+      <svg id="taps" hidden aria-label="Toca la foto para medir un color"></svg>
       <div class="brush-cursor" id="cursor" hidden></div>
     </div>
-    <label class="drop" id="drop">
-      <input id="file" type="file" accept="image/png,image/jpeg,image/webp">
-      <strong>Elige una foto</strong>
-      <span>o arrástrala aquí, o pégala con Ctrl+V</span>
-    </label>
+    <div class="camera" id="camera" hidden>
+      <video id="cam" playsinline muted aria-label="Vista de la cámara"></video>
+      <div class="cam-bar">
+        <button id="cam-shot" type="button" class="primary">Tomar foto</button>
+        <button id="cam-flip" type="button">Cambiar cámara</button>
+        <button id="cam-close" type="button">Cerrar</button>
+      </div>
+    </div>
+    <div class="drop" id="drop">
+      <label class="drop-file">
+        <input id="file" type="file" accept="image/png,image/jpeg,image/webp">
+        <strong>Elige una foto</strong>
+        <span>o arrástrala aquí, o pégala con Ctrl+V</span>
+      </label>
+      <button id="cam-open" type="button" class="primary">📷 Usar la cámara</button>
+    </div>
     <p class="status" id="status" role="status" aria-live="polite"></p>
   </section>
 
   <aside>
-    <fieldset>
-      <legend>Estilo</legend>
-      <div class="styles" id="styles" role="radiogroup"></div>
-    </fieldset>
-
-    <fieldset id="controls" disabled>
-      <legend>Ajustes</legend>
-      <label class="check"><input id="hq" type="checkbox"> <span>Alta calidad <small>(hasta 2400 px, más lento)</small></span> <output id="o-res"></output></label>
-      <label><span>Grosor de línea <output id="o-thick"></output></span><input id="thick" type="range" min="-1" max="3" step="1" value="0"></label>
-      <label><span>Detalle <output id="o-tau"></output></span><input id="tau" type="range" min="0.94" max="0.995" step="0.005" value="0.975"></label>
-      <label><span>Sombras <output id="o-dark"></output></span><input id="dark" type="range" min="-0.2" max="0.3" step="0.02" value="0"></label>
-      <label><span>Recorte de fondo <output id="o-tol"></output></span><input id="tol" type="range" min="0" max="40" step="2" value="18"></label>
-      <div class="brush" role="group" aria-labelledby="brush-title">
+    <!-- Mi foto -->
+    <div class="panel" data-panel="foto">
+      <fieldset>
+        <legend>Tu foto</legend>
+        <ul class="checks">
+          <li>☀️ Luz de día de una ventana, de frente (sin luz amarilla ni flash)</li>
+          <li>🙂 De frente, cara relajada, sin gafas ni gorra</li>
+          <li>📏 Cámara a la altura de los ojos y a más de un brazo (los selfies muy cerca deforman)</li>
+          <li>💇 Pelo apartado de la frente para ver la forma de la cara</li>
+          <li>🚫 Sin filtros ni maquillaje que cambie el tono</li>
+        </ul>
         <div class="row">
-          <span class="group-title" id="brush-title">Retocar recorte</span>
-          <button id="brush" type="button" aria-pressed="false">Pincel</button>
+          <button id="pick" type="button">Subir foto</button>
+          <button id="cam-open2" type="button">Usar la cámara</button>
         </div>
-        <div id="brush-tools" hidden>
-          <div class="row" role="radiogroup" aria-label="Qué pintas">
-            <button type="button" role="radio" id="tool-person" aria-checked="true">Es persona</button>
-            <button type="button" role="radio" id="tool-bg" aria-checked="false">Es fondo</button>
-          </div>
-          <label><span>Tamaño del pincel <output id="o-size"></output></span><input id="size" type="range" min="8" max="200" step="4" value="60"></label>
-          <div class="row">
-            <button id="undo" type="button" disabled>Deshacer</button>
-            <button id="wipe" type="button" disabled>Borrar retoques</button>
-          </div>
-          <p class="hint">Las zonas azuladas son fondo. Pinta «Es persona» donde el recorte se comió algo tuyo y «Es fondo» donde sobra. Ctrl+Z deshace; [ y ] cambian el tamaño.</p>
-        </div>
-      </div>
-      <div class="row">
-        <button id="compare" type="button" aria-pressed="false">Antes / después</button>
-        <button id="reset" type="button">Restablecer</button>
-      </div>
-      <button id="save" type="button" class="primary">Descargar PNG</button>
-      <button id="clear" type="button">Quitar foto</button>
-    </fieldset>
+        <button id="clear" type="button" disabled>Quitar foto</button>
+      </fieldset>
+      <details>
+        <summary>Privacidad: qué se garantiza y qué no</summary>
+        <ul>
+          <li><b>Sí:</b> la foto se procesa solo en este navegador. La página bloquea cualquier conexión de red (CSP <code>connect-src 'none'</code>).</li>
+          <li><b>Sí:</b> la cámara solo se usa mientras la tienes abierta y la imagen no sale del navegador.</li>
+          <li><b>Sí:</b> no se guarda nada; al cerrar la pestaña desaparece.</li>
+          <li><b>No:</b> si publicas una imagen, nadie puede impedir técnicamente que se use para entrenar una IA.</li>
+        </ul>
+      </details>
+    </div>
 
-    <details>
-      <summary>Privacidad: qué se garantiza y qué no</summary>
-      <ul>
-        <li><b>Sí:</b> la foto se procesa solo en este navegador. La página bloquea cualquier conexión de red (CSP <code>connect-src 'none'</code>).</li>
-        <li><b>Sí:</b> no se guarda nada; al cerrar la pestaña desaparece.</li>
-        <li><b>Sí:</b> el PNG exportado no lleva EXIF (ni GPS ni modelo de móvil) y lleva la marca <code>noai, noimageai</code>.</li>
-        <li><b>No:</b> si publicas la imagen, nadie puede impedir técnicamente que se use para entrenar una IA. La marca <code>noai</code> es una petición que solo algunos respetan.</li>
-        <li><b>No:</b> estilizar no anonimiza: sigues siendo reconocible.</li>
-      </ul>
-    </details>
+    <!-- Color -->
+    <div class="panel" data-panel="color" hidden>
+      <fieldset id="color-box" disabled>
+        <legend>Medir en tu foto</legend>
+        <p class="hint">La piel se mide sola. Toca un botón y luego la foto. Todo es opcional, pero cuanto más midas, más acierta.</p>
+        <div class="sample-row" data-sample="wb"><span class="chip-swatch" id="sw-wb"></span><button type="button" data-pick="wb">1. Tocar algo blanco o gris</button></div>
+        <div class="sample-row" data-sample="skin"><span class="chip-swatch" id="sw-skin"></span><button type="button" data-pick="skin">2. Tocar tu mejilla</button></div>
+        <div class="sample-row" data-sample="hair"><span class="chip-swatch" id="sw-hair"></span><button type="button" data-pick="hair">3. Tocar tu pelo</button></div>
+        <div class="sample-row" data-sample="eyes"><span class="chip-swatch" id="sw-eyes"></span><button type="button" data-pick="eyes">4. Tocar tu iris</button></div>
+        <p class="hint" id="pick-hint" aria-live="polite"></p>
+        <p class="hint">El blanco (una pared, un papel, el blanco del ojo) corrige el color de la luz. Sin él, una luz amarilla te haría parecer “cálido”.</p>
+      </fieldset>
+    </div>
+
+    <!-- Cara -->
+    <div class="panel" data-panel="cara" hidden>
+      <fieldset id="advisor-box" disabled>
+        <legend>Marca tu cara</legend>
+        <p class="hint">Arrastra cada punto a su sitio (o Tab + flechas). Mejor con foto <b>de frente y sin gafas</b>.</p>
+        <ol class="points" id="point-list"></ol>
+        <button id="advisor-reset" type="button">Recolocar puntos</button>
+      </fieldset>
+      <fieldset>
+        <legend>Sobre ti</legend>
+        <label><span>Tu pelo</span>
+          <select id="hair"><option value="liso">Liso</option><option value="ondulado">Ondulado</option><option value="rizado">Rizado</option></select></label>
+        <label><span>Tu barba en las mejillas</span>
+          <select id="beard"><option value="2">Sale completa</option><option value="1">Media</option><option value="0">Escasa o irregular</option></select></label>
+        <label class="check"><input id="receding" type="checkbox"> <span>Tengo entradas</span></label>
+      </fieldset>
+    </div>
+
+    <!-- Estilo -->
+    <div class="panel" data-panel="estilo" hidden>
+      <fieldset><legend>Cuéntame de ti</legend><div id="estilo-quiz" class="quiz"></div></fieldset>
+    </div>
+
+    <!-- Probador -->
+    <div class="panel" data-panel="probador" hidden>
+      <fieldset>
+        <legend>¿Qué te pruebas?</legend>
+        <div class="row" role="radiogroup" aria-label="Modo del probador">
+          <button type="button" role="radio" id="mode-color" aria-checked="true">👕 Color de prenda</button>
+          <button type="button" role="radio" id="mode-glasses" aria-checked="false">👓 Gafas</button>
+        </div>
+        <p class="hint" id="probador-hint">Toca una prenda en la foto (o abre la cámara y toca tu ropa) y te digo si ese color te favorece.</p>
+        <button id="cam-open3" type="button">📷 Abrir la cámara</button>
+        <label><span>Tu estación de color</span><select id="probador-season"></select></label>
+      </fieldset>
+      <fieldset id="glasses-tools" hidden>
+        <legend>Monturas</legend>
+        <div class="pic-picker" id="glasses-picker" role="radiogroup" aria-label="Tipo de montura"></div>
+        <label><span>Color de montura</span><select id="glasses-color"></select></label>
+        <label><span>Tamaño <output id="o-gsize"></output></span><input id="gsize" type="range" min="60" max="160" value="100"></label>
+        <label><span>Altura</span><input id="gy" type="range" min="-30" max="30" value="0"></label>
+        <label><span>Izquierda / derecha</span><input id="gx" type="range" min="-30" max="30" value="0"></label>
+        <p class="hint">Si marcaste tu cara en «Cara», las gafas se colocan solas sobre los ojos.</p>
+      </fieldset>
+    </div>
+
+    <!-- Piel -->
+    <div class="panel" data-panel="piel" hidden>
+      <fieldset><legend>Tu piel</legend><div id="piel-quiz" class="quiz"></div></fieldset>
+      <fieldset><legend>¿Qué quieres mejorar?</legend><div id="piel-concerns" class="chips" role="group" aria-label="Preocupaciones"></div></fieldset>
+    </div>
+
+    <!-- Resumen -->
+    <div class="panel" data-panel="resumen" hidden>
+      <fieldset>
+        <legend>Tu ficha</legend>
+        <p class="hint">Junta todo en una página. Para guardarla, imprímela como PDF (no se guarda nada en la app).</p>
+        <button id="print" type="button" class="primary">Imprimir / guardar PDF</button>
+      </fieldset>
+    </div>
+
+    <!-- Filtro anime -->
+    <div class="panel" data-panel="anime" hidden>
+      <fieldset>
+        <legend>Estilo</legend>
+        <div class="styles" id="styles" role="radiogroup"></div>
+      </fieldset>
+      <fieldset id="controls" disabled>
+        <legend>Ajustes</legend>
+        <label class="check"><input id="hq" type="checkbox"> <span>Alta calidad <small>(hasta 2400 px, más lento)</small></span> <output id="o-res"></output></label>
+        <label><span>Grosor de línea <output id="o-thick"></output></span><input id="thick" type="range" min="-1" max="3" step="1" value="0"></label>
+        <label><span>Detalle <output id="o-tau"></output></span><input id="tau" type="range" min="0.94" max="0.995" step="0.005" value="0.975"></label>
+        <label><span>Sombras <output id="o-dark"></output></span><input id="dark" type="range" min="-0.2" max="0.3" step="0.02" value="0"></label>
+        <label><span>Recorte de fondo <output id="o-tol"></output></span><input id="tol" type="range" min="0" max="40" step="2" value="18"></label>
+        <div class="brush" role="group" aria-labelledby="brush-title">
+          <div class="row">
+            <span class="group-title" id="brush-title">Retocar recorte</span>
+            <button id="brush" type="button" aria-pressed="false">Pincel</button>
+          </div>
+          <div id="brush-tools" hidden>
+            <div class="row" role="radiogroup" aria-label="Qué pintas">
+              <button type="button" role="radio" id="tool-person" aria-checked="true">Es persona</button>
+              <button type="button" role="radio" id="tool-bg" aria-checked="false">Es fondo</button>
+            </div>
+            <label><span>Tamaño del pincel <output id="o-size"></output></span><input id="size" type="range" min="8" max="200" step="4" value="60"></label>
+            <div class="row">
+              <button id="undo" type="button" disabled>Deshacer</button>
+              <button id="wipe" type="button" disabled>Borrar retoques</button>
+            </div>
+            <p class="hint">Las zonas azuladas son fondo. Pinta «Es persona» donde el recorte se comió algo tuyo y «Es fondo» donde sobra. Ctrl+Z deshace; [ y ] cambian el tamaño.</p>
+          </div>
+        </div>
+        <div class="row">
+          <button id="compare" type="button" aria-pressed="false">Antes / después</button>
+          <button id="reset" type="button">Restablecer</button>
+        </div>
+        <button id="save" type="button" class="primary">Descargar PNG</button>
+      </fieldset>
+    </div>
   </aside>
+
+  <section class="report" id="report-foto" data-report="foto" aria-label="Cómo funciona"></section>
+  <section class="report" id="report-color" data-report="color" hidden aria-live="polite" aria-label="Tu colorimetría"></section>
+  <section class="report" id="report-cara" data-report="cara" hidden aria-live="polite" aria-label="Tu cara"></section>
+  <section class="report" id="report-estilo" data-report="estilo" hidden aria-live="polite" aria-label="Tu estilo"></section>
+  <section class="report" id="report-probador" data-report="probador" hidden aria-live="polite" aria-label="Resultado del probador"></section>
+  <section class="report" id="report-piel" data-report="piel" hidden aria-live="polite" aria-label="Tu rutina de piel"></section>
+  <section class="report" id="report-resumen" data-report="resumen" hidden aria-label="Tu ficha"></section>
 </main>
 
 <script src="core/ops.js"></script>
@@ -100,6 +227,18 @@
 <script src="core/render.js"></script>
 <script src="core/brush.js"></script>
 <script src="core/pipeline.js"></script>
+<script src="core/asesor.js"></script>
+<script src="core/color.js"></script>
+<script src="core/dibujos.js"></script>
+<script src="core/estilo.js"></script>
+<script src="core/piel.js"></script>
+<script src="ui/app.js"></script>
 <script src="main.js"></script>
+<script src="ui/cara.js"></script>
+<script src="ui/color.js"></script>
+<script src="ui/estilo.js"></script>
+<script src="ui/probador.js"></script>
+<script src="ui/piel.js"></script>
+<script src="ui/resumen.js"></script>
 </body>
 </html>

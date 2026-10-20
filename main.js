@@ -1,24 +1,21 @@
-// UI: carga de foto, elección de estilo, ajustes y exportación. Todo en memoria.
+// Pestaña "Filtro anime": elección de estilo, ajustes, pincel, cortina y exportación. Todo en memoria.
+// La foto la carga ui/app.js; aquí solo se calcula mientras la pestaña está abierta.
 (function () {
   "use strict";
-  const { styles, render, pipeline, backgrounds, png, ops, brush } = window.FA;
+  const { styles, render, pipeline, backgrounds, png, ops, brush, app } = window.FA;
   const $ = (id) => document.getElementById(id);
   const MAX_SIDE = { normal: 1400, hq: 2400 };
+  const active = () => app.tab === "anime";
 
   const out = $("out"), ctx = out.getContext("2d");
   const state = {
-    bitmap: null,                        // foto decodificada, para cambiar de resolución sin recargar
     source: null, sourceVersion: 0, preset: styles.PRESETS[0], timer: 0,
     inFlight: false, dirty: false,       // un solo cálculo pesado a la vez; los cambios intermedios se agrupan
     layers: null, auto: null,            // última fase pesada y su máscara automática
     strokes: [], override: null,         // retoques del pincel
     brushOn: false, sign: 1, stroke: null, frame: 0,
   };
-
-  function setStatus(msg, isError = false) {
-    $("status").textContent = msg;
-    $("status").classList.toggle("error", isError);
-  }
+  const setStatus = app.setStatus;
 
   // ---- estilos ----
   for (const p of styles.PRESETS) {
@@ -65,30 +62,35 @@
   for (const id of ["thick", "tau", "dark", "tol"]) $(id).addEventListener("input", () => { updateOutputs(); schedule(); });
   $("reset").addEventListener("click", resetAdjustments);
 
-  // ---- carga ----
-  async function loadFile(file) {
-    if (!file || !/^image\/(png|jpeg|webp|gif|bmp)$/.test(file.type)) {
-      setStatus("Formato no soportado. Usa JPG, PNG o WebP (las HEIC de iPhone hay que convertirlas antes).", true);
-      return;
-    }
-    setStatus("Cargando…");
-    try {
-      const bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
-      if (state.bitmap) state.bitmap.close();
-      state.bitmap = bmp;
-      resetEdits();
-      buildSource();
-      $("frame").hidden = false;
-      $("drop").hidden = true;
-      $("controls").disabled = false;
-    } catch (err) {
-      setStatus("No se pudo leer la imagen: " + err.message, true);
-    }
-  }
+  // ---- foto (la carga ui/app.js) ----
+  app.on("photo", (src) => {
+    resetEdits();
+    if (src) { buildSource(); $("controls").disabled = false; return; }
+    state.source = null;
+    $("o-res").textContent = "";
+    state.sourceVersion++;
+    engine.setSource(null);
+    state.layers = state.auto = null;
+    setBrush(false);
+    setCurtain(false);
+    ctx.clearRect(0, 0, out.width, out.height);
+    out.width = out.height = 0;
+    $("orig").width = $("orig").height = 0;
+    $("controls").disabled = true;
+  });
+
+  app.on("tab", (t) => {
+    const on = t === "anime";
+    // la foto original se ve hasta que hay un resultado que enseñar
+    out.hidden = !on || !state.layers;
+    $("photo").hidden = on && !!state.layers;
+    if (!on) { setBrush(false); setCurtain(false); }
+    else schedule(0);
+  });
 
   // Reescala la foto al tamaño de trabajo (normal o alta calidad) y lo prepara todo para ese tamaño.
   function buildSource() {
-    const bmp = state.bitmap;
+    const bmp = app.bitmap;
     const side = $("hq").checked ? MAX_SIDE.hq : MAX_SIDE.normal;
     const s = Math.min(1, side / Math.max(bmp.width, bmp.height));
     const w = Math.round(bmp.width * s), h = Math.round(bmp.height * s);
@@ -111,41 +113,11 @@
     schedule(0);
   }
 
-  $("hq").addEventListener("change", () => { if (state.bitmap) buildSource(); });
-
-  $("file").addEventListener("change", (e) => loadFile(e.target.files[0]));
-  const stage = $("stage");
-  stage.addEventListener("dragover", (e) => { e.preventDefault(); stage.classList.add("dragging"); });
-  stage.addEventListener("dragleave", () => stage.classList.remove("dragging"));
-  stage.addEventListener("drop", (e) => { e.preventDefault(); stage.classList.remove("dragging"); loadFile(e.dataTransfer.files[0]); });
-  window.addEventListener("paste", (e) => {
-    const item = [...e.clipboardData.items].find((i) => i.type.startsWith("image/"));
-    if (item) loadFile(item.getAsFile());
-  });
-
-  $("clear").addEventListener("click", () => {
-    state.source = null;
-    if (state.bitmap) { state.bitmap.close(); state.bitmap = null; }
-    $("o-res").textContent = "";
-    state.sourceVersion++;
-    engine.setSource(null);
-    state.layers = state.auto = null;
-    resetEdits();
-    setBrush(false);
-    ctx.clearRect(0, 0, out.width, out.height);
-    out.width = out.height = 0;
-    $("orig").width = $("orig").height = 0;
-    $("frame").hidden = true;
-    setCurtain(false);
-    $("drop").hidden = false;
-    $("file").value = "";
-    $("controls").disabled = true;
-    setStatus("");
-  });
+  $("hq").addEventListener("change", () => { if (app.bitmap) buildSource(); });
 
   // ---- render ----
   function schedule(delay = 120) {
-    if (!state.source) return;
+    if (!state.source || !active()) return;
     clearTimeout(state.timer);
     state.timer = setTimeout(draw, delay);
   }
@@ -165,6 +137,8 @@
         state.layers = layers;
         state.auto = auto;
         recomposite();
+        out.hidden = !active();
+        $("photo").hidden = active();
         setStatus("");
         out.dataset.ms = String(Math.round(performance.now() - t));
       })
@@ -410,14 +384,14 @@
     out.toBlob(async (blob) => {
       if (!blob) { setStatus("No se pudo exportar.", true); return; }
       const bytes = png.addTextChunks(new Uint8Array(await blob.arrayBuffer()), {
-        Software: "FiltroAnime",
+        Software: "Espejo",
         Comment: "noai, noimageai",
         Disclaimer: "No autorizado para entrenar IA / Not licensed for AI training",
       });
       const url = URL.createObjectURL(new Blob([bytes], { type: "image/png" }));
       const a = document.createElement("a");
       a.href = url;
-      a.download = `filtroanime-${state.preset.id}${$("hq").checked ? "-hq" : ""}.png`;
+      a.download = `espejo-anime-${state.preset.id}${$("hq").checked ? "-hq" : ""}.png`;
       a.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     }, "image/png");
