@@ -1,5 +1,6 @@
 // Pestaña "Probador": toca una prenda (foto o cámara en vivo) → ¿te favorece? y qué color buscar.
 // También superpone monturas sobre tu foto, colocadas con los puntos de «Cara» si existen.
+// El modo «Pelo y barba» vive en ui/pelo.js; aquí solo se cambia de modo y se le avisa ("probador").
 (function () {
   "use strict";
   const { color, dibujos, app } = window.FA;
@@ -28,16 +29,21 @@
     st.mode = m;
     $("mode-color").setAttribute("aria-checked", String(m === "color"));
     $("mode-glasses").setAttribute("aria-checked", String(m === "glasses"));
+    $("mode-hair").setAttribute("aria-checked", String(m === "hair"));
     $("glasses-tools").hidden = m !== "glasses";
-    $("probador-hint").textContent = m === "color"
-      ? "Toca una prenda en la foto (o abre la cámara y toca tu ropa) y te digo si ese color te favorece."
-      : "Elige una montura: se dibuja sobre tu foto. Ajusta tamaño y posición con los controles.";
-    if (m === "glasses") app.closeCamera();
+    $("probador-hint").textContent = {
+      color: "Toca una prenda en la foto (o abre la cámara y toca tu ropa) y te digo si ese color te favorece.",
+      glasses: "Elige una montura: se dibuja sobre tu foto. Ajusta tamaño y posición con los controles.",
+      hair: "Elige un color de pelo y una barba: se simulan sobre tu foto con modelos que funcionan dentro del navegador.",
+    }[m];
+    if (m !== "color") app.closeCamera();
+    app.probadorMode = m;
     show();
     render();
   }
   $("mode-color").addEventListener("click", () => setMode("color"));
   $("mode-glasses").addEventListener("click", () => setMode("glasses"));
+  $("mode-hair").addEventListener("click", () => setMode("hair"));
 
   // ---- color de prenda ----
   function tryColor(rgb, where) {
@@ -190,7 +196,9 @@
   function render() {
     if (app.tab !== "probador") return;
     rep.replaceChildren();
-    if (st.mode === "color") renderColor(); else renderGlasses();
+    if (st.mode === "color") renderColor();
+    else if (st.mode === "glasses") renderGlasses();
+    else app.emit("probador", { render: rep, season: st.season });
   }
 
   function show() {
@@ -199,6 +207,7 @@
     $("frame").classList.toggle("try-color", on && st.mode === "color");
     if (on && st.mode === "glasses") { buildPicker(); buildColors(); }
     placeGlasses();
+    app.emit("probador", { show: on && st.mode === "hair", season: st.season });
   }
 
   app.on("tab", (t) => { if (t === "probador") { syncSeason(); render(); } show(); });

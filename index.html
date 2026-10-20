@@ -44,6 +44,7 @@
         <input id="split" type="range" min="0" max="100" step="1" value="50" aria-label="Posición de la cortina antes/después" aria-valuetext="50 % original">
       </div>
       <canvas id="paint" hidden aria-label="Lienzo del pincel: las zonas azuladas son fondo"></canvas>
+      <canvas id="try-canvas" hidden aria-label="Tu foto con el color de pelo y la barba simulados"></canvas>
       <div class="glasses-layer" id="glasses-layer" hidden></div>
       <svg id="marks" hidden aria-label="Puntos de medida de la cara"></svg>
       <svg id="taps" hidden aria-label="Toca la foto para medir un color"></svg>
@@ -148,10 +149,24 @@
         <div class="row" role="radiogroup" aria-label="Modo del probador">
           <button type="button" role="radio" id="mode-color" aria-checked="true">👕 Color de prenda</button>
           <button type="button" role="radio" id="mode-glasses" aria-checked="false">👓 Gafas</button>
+          <button type="button" role="radio" id="mode-hair" aria-checked="false">💇 Pelo y barba</button>
         </div>
         <p class="hint" id="probador-hint">Toca una prenda en la foto (o abre la cámara y toca tu ropa) y te digo si ese color te favorece.</p>
         <button id="cam-open3" type="button">📷 Abrir la cámara</button>
         <label><span>Tu estación de color</span><select id="probador-season"></select></label>
+      </fieldset>
+      <fieldset id="hair-tools" hidden>
+        <legend>Color de pelo</legend>
+        <div class="hair-swatches" id="hair-colors" role="radiogroup" aria-label="Color de pelo"></div>
+        <label><span>Otro color</span><input id="hair-custom" type="color" value="#6b4423"></label>
+        <label><span>Intensidad <output id="o-hstrength"></output></span><input id="hair-strength" type="range" min="30" max="100" value="80"></label>
+      </fieldset>
+      <fieldset id="beard-tools" hidden>
+        <legend>Barba</legend>
+        <div class="chips" id="beard-picker" role="radiogroup" aria-label="Estilo de barba"></div>
+        <label><span>Densidad <output id="o-bdensity"></output></span><input id="beard-density" type="range" min="30" max="100" value="75"></label>
+        <button id="hair-compare" type="button">Mantén pulsado: ver el original</button>
+        <p class="hint">Simulación aproximada: cambia color y barba, no el corte. La barba simulada tapa la tuya si ya tienes.</p>
       </fieldset>
       <fieldset id="glasses-tools" hidden>
         <legend>Monturas</legend>
@@ -243,12 +258,15 @@
 <script src="core/estilo.js"></script>
 <script src="core/piel.js"></script>
 <script src="core/ficha.js"></script>
+<script src="core/pelo.js"></script>
 <script src="ui/app.js"></script>
+<script src="ui/mp.js"></script>
 <script src="main.js"></script>
 <script src="ui/cara.js"></script>
 <script src="ui/color.js"></script>
 <script src="ui/estilo.js"></script>
 <script src="ui/probador.js"></script>
+<script src="ui/pelo.js"></script>
 <script src="ui/piel.js"></script>
 <script src="ui/resumen.js"></script>
 </body>

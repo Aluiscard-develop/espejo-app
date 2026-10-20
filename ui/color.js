@@ -155,6 +155,7 @@
     rep.replaceChildren();
     const lab = {};
     for (const k of ["skin", "hair", "eyes"]) { const c = corrected(k); if (c) lab[k] = color.rgbToLab(c); }
+    app.profile.hairRgb = corrected("hair"); // el probador lo usa como color natural de la barba
     const answered = Object.values(st.answers).some(Boolean);
     const hasData = answered || Object.keys(lab).length > 0;
 

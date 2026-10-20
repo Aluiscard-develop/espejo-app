@@ -24,6 +24,17 @@
     return [116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)];
   }
 
+  function labToRgb([L, a, b]) {
+    const fy = (L + 16) / 116, fx = fy + a / 500, fz = fy - b / 200;
+    const inv = (t) => (t ** 3 > 216 / 24389 ? t ** 3 : (116 * t - 16) / (24389 / 27));
+    const X = inv(fx) * 0.95047, Y = inv(fy), Z = inv(fz) * 1.08883;
+    return [
+      fromLinear(3.2404542 * X - 1.5371385 * Y - 0.4985314 * Z),
+      fromLinear(-0.969266 * X + 1.8760108 * Y + 0.041556 * Z),
+      fromLinear(0.0556434 * X - 0.2040259 * Y + 1.0572252 * Z),
+    ];
+  }
+
   function hexToRgb(hex) {
     const n = parseInt(hex.slice(1), 16);
     return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
@@ -318,7 +329,7 @@
   }
 
   return {
-    rgbToLab, hexToRgb, rgbToHex, hexToLab, chroma, hue, deltaE,
+    rgbToLab, labToRgb, hexToRgb, rgbToHex, hexToLab, chroma, hue, deltaE,
     sampleCircle, whiteBalance, applyGains,
     QUIZ, quizAxes, photoAxes, combineAxes, SEASONS, METALS, classify, analyze, judge, jewelry,
   };
